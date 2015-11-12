@@ -10,6 +10,7 @@ namespace ThreeThingGame131115
 {
     class Animation
     {
+        public bool reversed =false;
         public float scale = 1f;
         public bool active = true;
         public SpriteEffects flip;
@@ -74,39 +75,75 @@ namespace ThreeThingGame131115
 
         public void Update(GameTime gameTime)
         {
-
-            frameHeight = spriteSheet.Height;
-            frameWidth = spriteSheet.Width / totalFrames;
-            time += (float)gameTime.ElapsedGameTime.TotalSeconds;
-            if (!isPaused)
+            if (active)
             {
-                while (time > frameTime)
+                frameHeight = spriteSheet.Height;
+                frameWidth = spriteSheet.Width / totalFrames;
+                time += (float)gameTime.ElapsedGameTime.TotalSeconds;
+                if (!isPaused)
                 {
-                    frameIndex++;
-
-
-                    if (frameIndex == totalFrames)
+                    while (time > frameTime)
                     {
-                        if (!runOnce)
+                        if (!reversed)
                         {
-                            frameIndex = 0;
+                            frameIndex++;
                         }
                         else
                         {
-                            active = false;
+                            frameIndex--;
                         }
 
+                        if (frameIndex == totalFrames)
+                        {
+                            if (!runOnce)
+                            {
+                                if (!reversed)
+                                {
+                                    frameIndex = 0;
+                                }
+                                else
+                                {
+                                    frameIndex = totalFrames - 1;
+                                }
+
+                                
+                            }
+                            else
+                            {
+                                frameIndex = totalFrames-1;
+                                isPaused = true;
+                            }
+
+                        }
+                        time = 0f;
                     }
-                    time = 0f;
                 }
+                if (!reversed)
+                {
+                    if (frameIndex > totalFrames)
+                    {
+                        frameIndex = 1;
+                    }
+                }
+                else
+                {
+                    if (frameIndex < 1)
+                    {
+                        frameIndex = totalFrames -1;
+                    }
+                }
+                source = new Rectangle(frameIndex * frameWidth, 0, frameWidth, frameHeight);
+                origin = new Vector2((frameWidth / 2.0f), (frameHeight / 2.0f));
+                transformation =
+                            Matrix.CreateTranslation(new Vector3(-origin, 0.0f)) *
+                            Matrix.CreateScale(scale) *
+                            Matrix.CreateTranslation(new Vector3(position, 0.0f));
             }
-            if (frameIndex > totalFrames) frameIndex = 1;
-            source = new Rectangle(frameIndex * frameWidth, 0, frameWidth, frameHeight);
-            origin = new Vector2((frameWidth / 2.0f) , (frameHeight / 2.0f) );
-            transformation =
-                        Matrix.CreateTranslation(new Vector3(-origin, 0.0f)) *
-                        Matrix.CreateScale(scale) *
-                        Matrix.CreateTranslation(new Vector3(position, 0.0f));
+            else
+            {
+                frameIndex = 0;
+                isPaused = false;
+            }
         }
         public Matrix transformation;
 

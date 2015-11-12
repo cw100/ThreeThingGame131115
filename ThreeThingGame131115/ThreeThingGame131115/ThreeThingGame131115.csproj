@@ -59,6 +59,12 @@
     <Content Include="Content\StickHead.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Content\StickJump.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\StickLand.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Content\StickRunning.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

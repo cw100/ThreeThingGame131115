@@ -22,7 +22,9 @@ namespace ThreeThingGame131115
         Animation playerHead
         , playerBody
         , playerArm
-        , playerRunning;
+        , playerRunning
+        , playerJump
+        ,playerCrouch;
         public Game1()
             : base()
         {
@@ -55,12 +57,18 @@ namespace ThreeThingGame131115
             playerHead = new Animation();
             playerArm = new Animation();
             playerRunning = new Animation();
+            playerJump = new Animation();
+            playerCrouch = new Animation();
             playerRunning.LoadContent(this.Content, "StickRunning");
             playerBody.LoadContent(this.Content, "Stick");
             playerHead.LoadContent(this.Content, "StickHead");
             playerArm.LoadContent(this.Content, "StickArm");
+            playerJump.LoadContent(this.Content, "StickJump");
+            playerCrouch.LoadContent(this.Content, "StickLand");
             player = new Player();
-            player.Initialize(playerBody,playerRunning, playerHead, playerArm, new Vector2(200 , 200), graphics.GraphicsDevice.Viewport.Width, graphics.GraphicsDevice.Viewport.Height,new Vector2(0,40f),200,new Vector2(0,15),PlayerIndex.One);
+            player.Initialize(playerBody, playerRunning, playerCrouch, playerJump, playerHead, playerArm,
+                new Vector2(200, 200), graphics.GraphicsDevice.Viewport.Width, graphics.GraphicsDevice.Viewport.Height, 
+                new Vector2(0, 40f), 200, new Vector2(0, 15), PlayerIndex.One);
             
         }
 
