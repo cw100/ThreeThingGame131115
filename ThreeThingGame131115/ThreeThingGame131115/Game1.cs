@@ -6,7 +6,6 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Storage;
-using Microsoft.Xna.Framework.GamerServices;
 #endregion
 
 namespace ThreeThingGame131115
@@ -18,13 +17,15 @@ namespace ThreeThingGame131115
     {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
-        Player player;
+        
+        List<Player> players;
         Animation playerHead
         , playerBody
         , playerArm
         , playerRunning
         , playerJump
-        ,playerCrouch;
+        ,playerCrouch
+        , playerWalking;
         public Game1()
             : base()
         {
@@ -41,8 +42,10 @@ namespace ThreeThingGame131115
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
-          
+            
+
             base.Initialize();
+           
         }
 
         /// <summary>
@@ -53,22 +56,8 @@ namespace ThreeThingGame131115
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            playerBody = new Animation();
-            playerHead = new Animation();
-            playerArm = new Animation();
-            playerRunning = new Animation();
-            playerJump = new Animation();
-            playerCrouch = new Animation();
-            playerRunning.LoadContent(this.Content, "StickRunning");
-            playerBody.LoadContent(this.Content, "Stick");
-            playerHead.LoadContent(this.Content, "StickHead");
-            playerArm.LoadContent(this.Content, "StickArm");
-            playerJump.LoadContent(this.Content, "StickJump");
-            playerCrouch.LoadContent(this.Content, "StickLand");
-            player = new Player();
-            player.Initialize(playerBody, playerRunning, playerCrouch, playerJump, playerHead, playerArm,
-                new Vector2(200, 200), graphics.GraphicsDevice.Viewport.Width, graphics.GraphicsDevice.Viewport.Height, 
-                new Vector2(0, 40f), 200, new Vector2(0, 15), PlayerIndex.One);
+          
+            LoadPlayers();
             
         }
 
@@ -80,7 +69,32 @@ namespace ThreeThingGame131115
         {
             // TODO: Unload any non ContentManager content here
         }
-
+        public void LoadPlayers()
+        {
+            players = new List<Player>();
+            for (int i = 0; i < 4; i++)
+            {
+                playerBody = new Animation();
+                playerHead = new Animation();
+                playerArm = new Animation();
+                playerRunning = new Animation();
+                playerJump = new Animation();
+                playerWalking = new Animation();
+                playerCrouch = new Animation();
+                playerRunning.LoadContent(this.Content, "StickRunning");
+                playerBody.LoadContent(this.Content, "Stick");
+                playerHead.LoadContent(this.Content, "StickHead");
+                playerArm.LoadContent(this.Content, "StickArm");
+                playerJump.LoadContent(this.Content, "StickJump");
+                playerCrouch.LoadContent(this.Content, "StickLand");
+                playerWalking.LoadContent(this.Content, "StickWalking");
+                Player player = new Player();
+                player.Initialize(playerBody, playerRunning, playerWalking, playerCrouch, playerJump, playerHead, playerArm,
+                    new Vector2(200*i, 200), graphics.GraphicsDevice.Viewport.Width, graphics.GraphicsDevice.Viewport.Height,
+                    new Vector2(0, 40f), 200, new Vector2(0, 15), (PlayerIndex)i);
+                players.Add(player);
+            }
+        }
         /// <summary>
         /// Allows the game to run logic such as updating the world,
         /// checking for collisions, gathering input, and playing audio.
@@ -90,7 +104,10 @@ namespace ThreeThingGame131115
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
-            player.Update(gameTime);
+            foreach (Player plyer in players)
+            {
+                plyer.Update(gameTime);
+            }
             // TODO: Add your update logic here
 
             base.Update(gameTime);
@@ -104,7 +121,10 @@ namespace ThreeThingGame131115
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
             spriteBatch.Begin();
-            player.Draw(spriteBatch);
+            foreach (Player plyer in players)
+            {
+                plyer.Draw(spriteBatch);
+            }
             // TODO: Add your drawing code here
             spriteBatch.End();
             base.Draw(gameTime);

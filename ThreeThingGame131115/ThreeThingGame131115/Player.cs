@@ -17,6 +17,7 @@ namespace ThreeThingGame131115
         Animation playerArm;
         Animation playerJump;
         Animation playerCrouch;
+        Animation playerWalking;
         Vector2 position;
         Vector2 gravity;
         Vector2 headPosition;
@@ -45,13 +46,15 @@ namespace ThreeThingGame131115
         {
             Standing,
             Running,
-            Crouch
+            Crouch,
+            Walking
         }
         State currentState = State.OnGround;
         MoveState currentMoveState = MoveState.Standing;
-        public void Initialize(Animation playerBody,Animation playerRunning,Animation playerCrouch, Animation playerJump, Animation playerHead, Animation playerArm, Vector2 position, float windowWidth, float windowHeight, Vector2 gravity,
+        public void Initialize(Animation playerBody, Animation playerRunning, Animation playerWalking, Animation playerCrouch, Animation playerJump, Animation playerHead, Animation playerArm, Vector2 position, float windowWidth, float windowHeight, Vector2 gravity,
           float playerSpeed, Vector2 jumpSpeed, PlayerIndex playerNumber)
         {
+            this.playerWalking = playerWalking;
             this.playerCrouch = playerCrouch;
             this.playerJump = playerJump;
             this.playerRunning = playerRunning;
@@ -68,12 +71,14 @@ namespace ThreeThingGame131115
             headPosition = new Vector2(position.X, position.Y - (playerBody.frameHeight + playerHead.frameHeight) / 2);
             armPosition = new Vector2(position.X, position.Y - (playerBody.frameHeight) / 2);
             playerBody.Initialize(1, 1, position, 0, Color.White);
-            playerRunning.Initialize(20, 0.25f, position, 0, Color.White);
+            playerWalking.Initialize(20, 0.5f, position, 0, Color.White);
+            playerRunning.Initialize(20, 0.2f, position, 0, Color.White);
             playerJump.Initialize(true, 5,0.2f, position, 0, Color.White);
             playerCrouch.Initialize(true, 5, 0.2f, position, 0, Color.White);
             playerRunning.active = false;
             playerCrouch.active = false;
             playerJump.active = false;
+            playerWalking.active = false;
             playerHead.Initialize(1, 1, headPosition, 0, Color.White);
             playerArm.Initialize(1, 1, armPosition, 0, Color.White);
             mainHitbox = new Rectangle((int)position.X, (int)position.Y, playerBody.frameWidth, playerBody.frameHeight);   
@@ -122,7 +127,7 @@ namespace ThreeThingGame131115
             {
                 if (stickInputRight.X < 0)
                 {
-                    
+                    playerWalking.flip = SpriteEffects.FlipHorizontally;                   
                     playerArm.flip = SpriteEffects.FlipHorizontally;                   
                     playerHead.flip = SpriteEffects.FlipHorizontally;
                     playerBody.flip = SpriteEffects.FlipHorizontally;
@@ -133,6 +138,7 @@ namespace ThreeThingGame131115
                 }
                 else
                 {
+                    playerWalking.flip = SpriteEffects.None;
                     playerCrouch.flip = SpriteEffects.None;
                     playerJump.flip = SpriteEffects.None;
                     playerRunning.flip = SpriteEffects.None;
@@ -168,10 +174,15 @@ namespace ThreeThingGame131115
         {
 
             velocity.X += stickInputLeft.X * playerSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds;
-            velocity.X = MathHelper.Clamp(velocity.X, -playerSpeed , playerSpeed );
-            if (stickInputLeft.X != 0)
+            velocity.X = MathHelper.Clamp(velocity.X, 4 * -playerSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds, 4 * playerSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds);
+            if (velocity.X > (2.5f*playerSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds)|| velocity.X < -(2.5f*playerSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds) )
+            {
+                currentMoveState = MoveState.Running;
+            } 
+            else
+                if (stickInputLeft.X != 0)
                {
-                   currentMoveState = MoveState.Running;
+                   currentMoveState = MoveState.Walking;
                }
                else
                {
@@ -245,7 +256,19 @@ namespace ThreeThingGame131115
             
             if (currentMoveState == MoveState.Standing)
             {
+                playerWalking.active = false;
                 playerBody.active = true;
+                playerRunning.active = false;
+                playerJump.active = false;
+                playerCrouch.active = false;
+                headPosition = new Vector2(position.X, position.Y - (playerBody.frameHeight + playerHead.frameHeight) / 2);
+                armPosition = new Vector2(position.X, position.Y - (playerBody.frameHeight) / 2);
+
+            }
+            if (currentMoveState == MoveState.Walking)
+            {
+                playerWalking.active = true;
+                playerBody.active = false;
                 playerRunning.active = false;
                 playerJump.active = false;
                 playerCrouch.active = false;
@@ -255,6 +278,7 @@ namespace ThreeThingGame131115
             }
             if (currentMoveState == MoveState.Running && (currentState != State.Jumping && currentState != State.Falling))
             {
+                playerWalking.active = false;
                 playerBody.active = false;
                 playerRunning.active = true;
                 playerJump.active = false;
@@ -265,10 +289,12 @@ namespace ThreeThingGame131115
                     armPosition = new Vector2(position.X + 18, position.Y + 8 - (playerBody.frameHeight) / 2);
                     if (velocity.X < 0)
                     {
+                        playerWalking.reversed = true;
                         playerRunning.reversed = true;
                     }
                     else 
                     {
+                        playerWalking.reversed = false;
                         playerRunning.reversed = false;
                     }
                 }
@@ -276,10 +302,12 @@ namespace ThreeThingGame131115
                 {
                     if (velocity.X > 0)
                     {
+                        playerWalking.reversed = true;
                         playerRunning.reversed = true;
                     }
                     else
                     {
+                        playerWalking.reversed = false;
                         playerRunning.reversed = false;
                     }
                     headPosition = new Vector2(position.X - 25, position.Y + 9 - (playerBody.frameHeight + playerHead.frameHeight) / 2);
@@ -291,6 +319,7 @@ namespace ThreeThingGame131115
             {
                 if (gamePadState.IsButtonDown(Buttons.X))
                 {
+                    playerWalking.active = false;
                     playerBody.active = false;
                     playerRunning.active = false;
                     playerJump.active = false;
@@ -309,6 +338,7 @@ namespace ThreeThingGame131115
             }
             if (currentState == State.Jumping || currentState == State.Falling)
             {
+                playerWalking.active = false;
                 playerJump.active = true;
                 playerBody.active = false;
                 playerRunning.active = false;
@@ -318,7 +348,7 @@ namespace ThreeThingGame131115
                 armPosition = new Vector2(position.X, position.Y + jumpList[playerJump.frameIndex] - (playerBody.frameHeight) / 2);
                 
             }
-            
+            playerWalking.position = position;
             playerCrouch.position = position;
             playerJump.position = position;
             playerRunning.position = position;
@@ -328,6 +358,7 @@ namespace ThreeThingGame131115
             playerJump.Update(gameTime);
             playerBody.Update(gameTime);
             playerHead.Update(gameTime);
+            playerWalking.Update(gameTime);
             playerArm.angle = armAngle;
             playerArm.Update(gameTime);
             playerCrouch.Update(gameTime);
@@ -345,6 +376,7 @@ namespace ThreeThingGame131115
         }
         public void Draw(SpriteBatch sb)
         {
+            playerWalking.Draw(sb);
             playerCrouch.Draw(sb);
             playerJump.Draw(sb);
             playerRunning.Draw(sb);
