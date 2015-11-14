@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Storage;
 
 namespace ThreeThingGame131115
 {
-    class Weapon
+   public class Weapon
     {
         GamePadState gamePadState;
         Texture2D projectileTex;

@@ -12,25 +12,16 @@ namespace ThreeThingGame131115
         Vector2 position;
         public Rectangle hitBox;
         Animation platformAnimation;
-     
-        public void Initialize(Vector2 pos)
+        int width, height;
+        public void Initialize(Vector2 pos,int width, int height)
         {
-            platformAnimation = new Animation();
+  
             position = pos;
 
-            platformAnimation.Initialize(1, 1, position, 0f, Color.White);
-            hitBox = new Rectangle((int)(position.X - platformAnimation.frameWidth / 2), (int)(position.Y - platformAnimation.frameHeight / 2), platformAnimation.frameWidth, platformAnimation.frameHeight);
+            hitBox = new Rectangle((int)(position.X), (int)(position.Y), width, height);
 
         }
-        public void Update(GameTime gameTime)
-        {
-            platformAnimation.Update(gameTime);
-        }
-        public void Draw(SpriteBatch spriteBatch)
-        {
-
-            platformAnimation.Draw(spriteBatch);
-        }
+ 
 
 
 

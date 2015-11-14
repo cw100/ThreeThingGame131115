@@ -15,12 +15,13 @@ namespace ThreeThingGame131115
     /// </summary>
     public class Game1 : Game
     {
-        GraphicsDeviceManager graphics;
+        public static GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
        public static List<Projectile> projectiles;
-        List<Player> players;
-      
-        Animation playerHead
+       public static List<Player> players;
+        bool gameActive;
+        
+      public static Animation playerHead
         , playerBody
         , playerArm
         , playerRunning
@@ -29,8 +30,11 @@ namespace ThreeThingGame131115
         , playerWalking
         ,weaponAnimation
         , bulletAnimation
-        ,platformAnimation;
-        Texture2D
+        ,platformAnimation
+        ,pickupAnimation
+        ,backGroundAnimation
+        ,scoreAnimation;
+      public static Texture2D
             playerHeadTex
         , playerBodyTex
         , playerArmTex
@@ -40,13 +44,21 @@ namespace ThreeThingGame131115
         , playerWalkingTex
         ,weaponTex
         ,bulletTex
-        ,platformTex;
+        ,platformTex
+        ,pickupTex
+        , backGroundTex
+        ,scoreTex
+        , healthTexture;
+      
+
+        public static List<Pickup> pickups;
+        SpriteFont spriteFont;       
         public Game1()
             : base()
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
-            graphics.IsFullScreen = true;
+            graphics.IsFullScreen = false;
             graphics.PreferredBackBufferHeight = 1080;
 
             graphics.PreferredBackBufferWidth = 1920;
@@ -61,9 +73,17 @@ namespace ThreeThingGame131115
         /// related content.  Calling base.Initialize will enumerate through any components
         /// and initialize them as well.
         /// </summary>
+        /// 
         protected override void Initialize()
         {
+           
             // TODO: Add your initialization logic here
+
+            base.Initialize();
+            StartGame();
+        }
+        public void StartGame()
+        {
             projectiles = new List<Projectile>();
             playerBody = new Animation();
             playerHead = new Animation();
@@ -75,10 +95,67 @@ namespace ThreeThingGame131115
             weaponAnimation = new Animation();
             bulletAnimation = new Animation();
             platformAnimation = new Animation();
-            base.Initialize();
+            backGroundAnimation = new Animation();
+            scoreAnimation = new Animation();
+            platformRectangles = new List<Rectangle>();
+            pickups = new List<Pickup>();
+            stairRectangles = new List<Rectangle>();
+            scoreAnimation.LoadTexture(scoreTex);
+            backGroundAnimation.LoadTexture(backGroundTex);
+            scoreAnimation.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth / 2, 0), 0, Color.White);
+           
+            backGroundAnimation.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth / 2, graphics.PreferredBackBufferHeight / 2), 0, Color.White);
             LoadPlayers();
+            AddPlatform();
+            AddStairs();
         }
-
+        Random random = new Random();
+        public void AddPickup()
+        {
+            Pickup pickup = new Pickup();
+            pickupAnimation = new Animation();
+            pickupAnimation.LoadTexture(pickupTex);
+            pickup.Initialize(pickupAnimation, new Vector2(random.Next(1920), random.Next(1080)), new Vector2(0, 40f),new Vector2 (0,0), 10);
+            pickups.Add(pickup);
+        }
+        public static void AddPickupPlayerDeath(float x,float y, Vector2 vel,Vector2 vel2)
+        {
+            Pickup pickup = new Pickup();
+            pickupAnimation = new Animation();
+            pickupAnimation.LoadTexture(pickupTex);
+            pickup.Initialize(pickupAnimation, new Vector2(x, y), vel, vel2, 10);
+       
+            pickups.Add(pickup);
+        }
+        public static void RespawnPlayer(int playerNum)
+        {
+            int score = players[playerNum].score;
+            playerBody = new Animation();
+            playerHead = new Animation();
+            playerArm = new Animation();
+            playerRunning = new Animation();
+            playerJump = new Animation();
+            playerWalking = new Animation();
+            playerCrouch = new Animation();
+            weaponAnimation = new Animation();
+            bulletAnimation = new Animation();
+            playerBody.LoadTexture(playerBodyTex);
+            playerRunning.LoadTexture(playerRunningTex);
+            playerHead.LoadTexture(playerHeadTex);
+            playerArm.LoadTexture(playerArmTex);
+            playerJump.LoadTexture(playerJumpTex);
+            playerCrouch.LoadTexture(playerCrouchTex);
+            playerWalking.LoadTexture(playerWalkingTex);
+            weaponAnimation.LoadTexture(weaponTex);
+            Weapon weapon = new Weapon();
+            weapon.Initialize(weaponAnimation, bulletTex, new Vector2(0, 0), new Vector2(25, 0), new Vector2(4, 14), 0, true, 1f, TimeSpan.FromSeconds(0.05), 10, (PlayerIndex)playerNum);
+            players[playerNum] = new Player();
+            players[playerNum].Initialize(healthTexture, playerBody, playerRunning, playerWalking, playerCrouch, playerJump, playerHead, playerArm,
+                    new Vector2(200 * playerNum, 200), graphics.GraphicsDevice.Viewport.Width, graphics.GraphicsDevice.Viewport.Height,
+                    new Vector2(0, 40f), 200, new Vector2(0, 15), (PlayerIndex)playerNum, score);
+            players[playerNum].activeWeapon = weapon;
+        }
+            
         /// <summary>
         /// LoadContent will be called once per game and is the place to load
         /// all of your content.
@@ -97,7 +174,14 @@ namespace ThreeThingGame131115
             weaponTex = LoadContent(this.Content, "gun");
             bulletTex = LoadContent(this.Content, "Bullet");
             platformTex = LoadContent(this.Content, "platform");
+            pickupTex = LoadContent(this.Content, "Good");
+            backGroundTex = LoadContent(this.Content, "BackGround1");
+            scoreTex = LoadContent(this.Content, "Scoreboard");
+            healthTexture = LoadContent(this.Content, "healthbar");
+            spriteFont = Content.Load<SpriteFont>("Font");        
+
         }
+        
 
         /// <summary>
         /// UnloadContent will be called once per game and is the place to unload
@@ -108,12 +192,138 @@ namespace ThreeThingGame131115
             // TODO: Unload any non ContentManager content here
         }
         List<Platform> platforms;
+        List<Platform> stairs;
+        public static List<Rectangle> stairRectangles;
+       
+        
+        public void AddStairs()
+        {
+            stairs = new List<Platform>();
+            for (int i = 0; i < 12; i++)
+            {
+                Platform stair = new Platform();
+
+                stair.Initialize(new Vector2(855 + i * 35, 1040 - i * 25), 35, 25);
+                stairs.Add(stair);
+                stairRectangles.Add(stair.hitBox);
+            }
+            for (int i = 0; i < 12; i++)
+            {
+                Platform stair = new Platform();
+
+                stair.Initialize(new Vector2(1465 + i * 35, 719 - i * 25), 35, 30);
+                stairs.Add(stair);
+                stairRectangles.Add(stair.hitBox);
+            }
+
+        }
         public void AddPlatform()
         {
-            platformRectangles = new List<Rectangle>();
+           
             platforms = new List<Platform>();
             Platform platform = new Platform();
-            platform.Initialize(new Vector2(0, 500));
+
+            platform.Initialize(new Vector2(196, 3025),197,30);
+            platforms.Add(platform);
+            platformRectangles.Add(platform.hitBox);
+
+             platform = new Platform();
+
+            platform.Initialize(new Vector2(72, 943), 200, 30);
+            platforms.Add(platform);
+            platformRectangles.Add(platform.hitBox);
+
+            platform = new Platform();
+
+            platform.Initialize(new Vector2(313, 943), 200, 30);
+            platforms.Add(platform);
+            platformRectangles.Add(platform.hitBox);
+
+            platform = new Platform();
+
+            platform.Initialize(new Vector2(816, 938), 200, 30);
+            platforms.Add(platform);
+            platformRectangles.Add(platform.hitBox);
+
+            platform = new Platform();
+
+            platform.Initialize(new Vector2(1534, 944), 200, 30);
+            platforms.Add(platform);
+            platformRectangles.Add(platform.hitBox);
+
+            platform = new Platform();
+
+            platform.Initialize(new Vector2(1212,646), 200, 30);
+            platforms.Add(platform);
+            platformRectangles.Add(platform.hitBox);
+
+            platform = new Platform();
+
+            platform.Initialize(new Vector2(1586, 981), 337, 30);
+            platforms.Add(platform);
+            platformRectangles.Add(platform.hitBox);
+
+            platform = new Platform();
+
+            platform.Initialize(new Vector2(188, 601),325, 30);
+            platforms.Add(platform);
+            platformRectangles.Add(platform.hitBox);
+
+            platform = new Platform();
+
+            platform.Initialize(new Vector2(787, 573), 156, 30);
+            platforms.Add(platform);
+            platformRectangles.Add(platform.hitBox);
+
+            platform = new Platform();
+
+            platform.Initialize(new Vector2(816, 512), 100, 30);
+            platforms.Add(platform);
+            platformRectangles.Add(platform.hitBox);
+
+            platform = new Platform();
+
+            platform.Initialize(new Vector2(1268, 320), 80, 30);
+            platforms.Add(platform);
+            platformRectangles.Add(platform.hitBox);
+
+            platform = new Platform();
+
+            platform.Initialize(new Vector2(-10, 369), 349, 30);
+            platforms.Add(platform);
+            platformRectangles.Add(platform.hitBox);
+
+            platform = new Platform();
+
+            platform.Initialize(new Vector2(-10, 288), 363, 30);
+            platforms.Add(platform);
+            platformRectangles.Add(platform.hitBox);
+
+            platform = new Platform();
+
+            platform.Initialize(new Vector2(1534, 371), 200, 30);
+            platforms.Add(platform);
+            platformRectangles.Add(platform.hitBox);
+
+            platform = new Platform();
+
+            platform.Initialize(new Vector2(-10, 765), 2100, 30);
+            platforms.Add(platform);
+            platformRectangles.Add(platform.hitBox);
+
+            platform = new Platform();
+
+            platform.Initialize(new Vector2(-10, 448), 2100, 30);
+            platforms.Add(platform);
+            platformRectangles.Add(platform.hitBox);
+            platform = new Platform();
+
+            platform.Initialize(new Vector2(861, 371), 200, 30);
+            platforms.Add(platform);
+            platformRectangles.Add(platform.hitBox);
+            platform = new Platform();
+
+            platform.Initialize(new Vector2(-10, 1070), 2100, 30);
             platforms.Add(platform);
             platformRectangles.Add(platform.hitBox);
         }
@@ -143,9 +353,9 @@ namespace ThreeThingGame131115
                Weapon weapon = new Weapon();
                weapon.Initialize(weaponAnimation, bulletTex, new Vector2(0, 0), new Vector2(25, 0),new Vector2(4,14), 0, true, 1f, TimeSpan.FromSeconds(0.05), 10, (PlayerIndex)i);
                 Player player = new Player();
-                player.Initialize(playerBody, playerRunning, playerWalking, playerCrouch, playerJump, playerHead, playerArm,
+                player.Initialize(healthTexture,playerBody, playerRunning, playerWalking, playerCrouch, playerJump, playerHead, playerArm,
                     new Vector2(200*i, 200), graphics.GraphicsDevice.Viewport.Width, graphics.GraphicsDevice.Viewport.Height,
-                    new Vector2(0, 40f), 200, new Vector2(0, 15), (PlayerIndex)i);
+                    new Vector2(0, 40f), 200, new Vector2(0, 15), (PlayerIndex)i,0);
                 player.activeWeapon = weapon;
                 players.Add(player);
             }
@@ -171,10 +381,34 @@ namespace ThreeThingGame131115
                         projectiles[j].projectileAnimation, players[i].playerTransformation,
                         projectiles[j].projectileTransformation))
                         {
+                            if (players[i].active)
+                            {
 
-                           
-                            players[i].health -=  projectiles[j].damage;
+
+                                players[i].health -= projectiles[j].damage;
+                                projectiles.RemoveAt(j);
+                            }
+                        }
+                    }
+                }
+            }
+            for (int i = 0; i < players.Count; i++)
+            {
+                for (int j = 0; j < projectiles.Count; j++)
+                {
+                    if (players[i].headHitbox.Intersects(projectiles[j].hitBox))
+                    {
+                        if (Collision.CollidesWith(players[i].playerHead,
+                        projectiles[j].projectileAnimation, players[i].headTransformation,
+                        projectiles[j].projectileTransformation))
+                        {
+                            if (players[i].active)
+                            {
+
+
+                            players[i].health -= projectiles[j].damage*2;
                             projectiles.RemoveAt(j);
+}
                         }
                     }
                 }
@@ -188,32 +422,77 @@ namespace ThreeThingGame131115
                         projectiles[j].position.X > players[i].prePosition.X && projectiles[j].position.X < players[i].position.X ||
                         projectiles[j].position.X < players[i].prePosition.X && projectiles[j].position.X > players[i].position.X))
                     {
-                        players[i].health -= projectiles[j].damage;
-                        projectiles.RemoveAt(j);
+                        if (players[i].active)
+                        {
+
+                            players[i].health -= projectiles[j].damage;
+                            projectiles.RemoveAt(j);
+                        }
                     }
                 }
             }
 
         }
+          public void PickupPlayerCollision()
+       {
+
+           for (int i = 0; i < players.Count; i++)
+           {
+               for (int j = 0; j < pickups.Count; j++)
+               {
+                   if (players[i].mainHitbox.Intersects(pickups[j].hitBox))
+                   {
+                       if (players[i].active)
+                       {
+
+                           players[i].score += pickups[j].score;
+                           pickups.RemoveAt(j);
+                       }
+                   }
+
+               }
+           }
+       }
+       TimeSpan previousSpawnTime;
+       TimeSpan spawnRate = TimeSpan.FromSeconds(1);
+       TimeSpan gameLength = TimeSpan.FromSeconds(60);
+        public enum GameState
+        {
+            Menu,
+            Select,
+            Playing
+        }
+        GameState curentGameState = GameState.Playing;
         protected override void Update(GameTime gameTime)
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
-            foreach (Player plyer in players)
+            if (curentGameState == GameState.Playing)
             {
-                plyer.Update(gameTime);
-            }
-            foreach(Projectile projectile in projectiles)
-            {
-                projectile.Update(gameTime);
-            }
-            foreach( Platform platform in platforms)
-            {
-                platform.Update(gameTime);
-            }
-            BulletPlayerCollision();
-            // TODO: Add your update logic here
+                for (int i = 0; i < players.Count; i++)
+                {
+                    players[i].Update(gameTime);
+                }
+                foreach (Projectile projectile in projectiles)
+                {
+                    projectile.Update(gameTime);
+                }
 
+                if (gameTime.TotalGameTime - previousSpawnTime > spawnRate)
+                {
+                    previousSpawnTime = gameTime.TotalGameTime;
+                    AddPickup();
+                }
+                foreach (Pickup pickup in pickups)
+                {
+                    pickup.Update(gameTime, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
+                }
+                backGroundAnimation.Update(gameTime);
+                scoreAnimation.Update(gameTime);
+                BulletPlayerCollision();
+                PickupPlayerCollision();
+                // TODO: Add your update logic here
+            }
             base.Update(gameTime);
         }
 
@@ -224,20 +503,34 @@ namespace ThreeThingGame131115
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
-            spriteBatch.Begin(); 
-            foreach (Projectile projectile in projectiles)
+            spriteBatch.Begin();
+            if (curentGameState == GameState.Playing)
             {
-                projectile.Draw(spriteBatch);
+                backGroundAnimation.Draw(spriteBatch);
+                scoreAnimation.Draw(spriteBatch);
+                for (int i = 0; i < players.Count; i++)
+                {
+                    string output = players[i].score.ToString();
+                    Vector2 FontOrigin = spriteFont.MeasureString(output) / 2;
+                    spriteBatch.DrawString(spriteFont, output, new Vector2(100 * (i + 3), 30), Color.Black,
+                                  0, FontOrigin, 1.0f, SpriteEffects.None, 0.5f);
+                }
+                foreach (Projectile projectile in projectiles)
+                {
+                    projectile.Draw(spriteBatch);
+                }
+                for (int i = 0; i < players.Count; i++)
+                {
+                    players[i].Draw(spriteBatch);
+                }
+
+
+                foreach (Pickup pickup in pickups)
+                {
+                    pickup.Draw(spriteBatch);
+                }
             }
-            foreach (Player plyer in players)
-            {
-                plyer.Draw(spriteBatch);
-            }
-          
-            foreach (Platform platform in platforms)
-            {
-                platform.Draw(spriteBatch);
-            }
+
             // TODO: Add your drawing code here
             spriteBatch.End();
             base.Draw(gameTime);

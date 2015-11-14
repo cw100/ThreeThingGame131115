@@ -8,14 +8,15 @@ using Microsoft.Xna.Framework.Storage;
 
 namespace ThreeThingGame131115
 {
-    class Player
+    public class Player
     {
+        public int score;
         Vector2 weaponPosition;
-        public float health = 100;
+        public float health;
         public Animation activeAnimation;
         Animation playerRunning;
         Animation playerBody;
-        Animation playerHead;
+        public Animation playerHead;
         Animation playerArm;
         Animation playerJump;
         Animation playerCrouch;
@@ -27,7 +28,7 @@ namespace ThreeThingGame131115
         public Vector2 velocity;
         Vector2 preJumpPosition;
         Vector2 jumpSpeed;
-       public Rectangle mainHitbox, headHitbox;
+        public Rectangle mainHitbox, headHitbox, footBox;
         Vector2 armAngleVector;
         float armAngle;
         float windowWidth, windowHeight;
@@ -38,6 +39,7 @@ namespace ThreeThingGame131115
         Vector2 stickInputRight, stickInputLeft;
         List<float> jumpList = new List<float>();
         public Weapon activeWeapon;
+      public  bool active;
         public enum State
         {
             Jumping,
@@ -51,13 +53,18 @@ namespace ThreeThingGame131115
             Crouch,
             Walking
         }
+        Texture2D healthtexture;
         State currentState = State.OnGround;
         MoveState currentMoveState = MoveState.Standing;
-        public void Initialize(Animation playerBody, Animation playerRunning, Animation playerWalking, Animation playerCrouch, Animation playerJump, Animation playerHead, Animation playerArm, Vector2 position, float windowWidth, float windowHeight, Vector2 gravity,
-          float playerSpeed, Vector2 jumpSpeed, PlayerIndex playerNumber)
+        public void Initialize(Texture2D healthtexture,Animation playerBody, Animation playerRunning, Animation playerWalking, Animation playerCrouch, Animation playerJump, Animation playerHead, Animation playerArm, Vector2 position, float windowWidth, float windowHeight, Vector2 gravity,
+          float playerSpeed, Vector2 jumpSpeed, PlayerIndex playerNumber, int score )
         {
-           
-
+            this.healthtexture = healthtexture;
+            State currentState = State.OnGround;
+            MoveState currentMoveState = MoveState.Standing;
+            active = true;
+            this.score = score;
+            health = 100;
             this.playerWalking = playerWalking;
             this.playerCrouch = playerCrouch;
             this.playerJump = playerJump;
@@ -76,7 +83,7 @@ namespace ThreeThingGame131115
             armPosition = new Vector2(position.X, position.Y - (playerBody.frameHeight) / 2);
             playerBody.Initialize(1, 1, position, 0, Color.White);
             playerWalking.Initialize(20, 0.5f, position, 0, Color.White);
-            playerRunning.Initialize(20, 0.2f, position, 0, Color.White);
+            playerRunning.Initialize(20, 0.4f, position, 0, Color.White);
             playerJump.Initialize(true, 5,0.2f, position, 0, Color.White);
             playerCrouch.Initialize(true, 5, 0.2f, position, 0, Color.White);
             playerRunning.active = false;
@@ -85,12 +92,15 @@ namespace ThreeThingGame131115
             playerWalking.active = false;
             playerHead.Initialize(1, 1, headPosition, 0, Color.White);
             playerArm.Initialize(1, 1, armPosition, 0, Color.White);
-            mainHitbox = new Rectangle((int)position.X - playerBody.frameWidth / 2, (int)position.Y - playerBody.frameHeight / 2, playerBody.frameWidth, playerBody.frameHeight);   
+            mainHitbox = new Rectangle((int)position.X - playerBody.frameWidth / 2, (int)position.Y - playerBody.frameHeight / 2, playerBody.frameWidth, playerBody.frameHeight);
+            headHitbox = new Rectangle((int)headPosition.X - playerHead.frameWidth / 2, (int)headPosition.Y - playerHead.frameHeight / 2, playerHead.frameWidth, playerHead.frameHeight);
+            footBox = new Rectangle((int)position.X - playerBody.frameWidth / 2, (int)position.Y + playerBody.frameHeight / 2 -10, playerBody.frameWidth, 10);
             jumpList.Add(26);
             jumpList.Add(22);
             jumpList.Add(16);
             jumpList.Add(9);
             jumpList.Add(0);
+            activeAnimation = playerBody;
           
         }
         public void GetInputRight()
@@ -258,239 +268,304 @@ namespace ThreeThingGame131115
            {
                foreach (Rectangle platform in Game1.platformRectangles)
                {
-                   if (Collision.RectangleCollisionLeft(mainHitbox, platform, velocity))
-                   {
-                       position.X = platform.Left - activeAnimation.frameWidth / 2;
-                       velocity.X = 0;
-                       mainHitbox.X = (int)(position.X - activeAnimation.frameWidth / 2);
-                       mainHitbox.Y = (int)(position.Y - activeAnimation.frameHeight / 2);
-                   }
 
-
-                   if (Collision.RectangleCollisionRight(mainHitbox, platform, velocity))
+                   if (currentMoveState != MoveState.Crouch)
                    {
-                       position.X = platform.Right + activeAnimation.frameWidth / 2;
-                       velocity.X = 0;
-                       mainHitbox.X = (int)(position.X - activeAnimation.frameWidth / 2);
-                       mainHitbox.Y = (int)(position.Y - activeAnimation.frameHeight / 2);
-
-                   }
-                   if (Collision.RectangleCollisionTop(mainHitbox, platform, velocity))
-                   {
-                       position.Y = (platform.Top - activeAnimation.frameHeight / 2);
-                       velocity.Y = 0;
-                       mainHitbox.X = (int)(position.X - activeAnimation.frameWidth / 2);
-                       mainHitbox.Y = (int)(position.Y - activeAnimation.frameHeight / 2);
-                       if (currentState != State.Jumping || currentState != State.Falling)
+                       if (Collision.RectangleCollisionTop(mainHitbox, platform, velocity))
                        {
-                           currentMoveState = MoveState.Standing;
+                           position.Y = (platform.Top - activeAnimation.frameHeight / 2);
+                           velocity.Y = 0;
+                           mainHitbox.X = (int)(position.X - activeAnimation.frameWidth / 2);
+                           mainHitbox.Y = (int)(position.Y - activeAnimation.frameHeight / 2);
+                           if (currentState != State.Jumping || currentState != State.Falling)
+                           {
+                               currentState = State.OnGround;
+                               currentMoveState = MoveState.Standing;
+                           }
                        }
                    }
-
-                   if (Collision.RectangleCollisionBottom(mainHitbox, platform, velocity))
-                   {
-                       position.Y = (platform.Bottom + activeAnimation.frameHeight / 2);
-                       velocity.Y = 0;
-                       mainHitbox.X = (int)(position.X - activeAnimation.frameWidth / 2);
-                       mainHitbox.Y = (int)(position.Y - activeAnimation.frameHeight / 2);
-
-                   }
+                   
 
 
 
                }
            }
+        public void StairCollision()
+        {
+            foreach (Rectangle platform in Game1.stairRectangles)
+            {
+                if (currentMoveState != MoveState.Crouch)
+                {
+                    if (footBox.Left < platform.Right)
+                    {
+                        if (Collision.RectangleCollisionLeft(footBox, platform, velocity))
+                        {
+                            position.Y = (platform.Top - activeAnimation.frameHeight / 2);
+                            footBox.X = (int)(position.X - activeAnimation.frameWidth / 2);
+                            footBox.Y = (int)(position.Y - activeAnimation.frameHeight / 2);
+                        }
+
+                    }
+
+                    if (Collision.RectangleCollisionTop(mainHitbox, platform, velocity))
+                    {
+                        position.Y = (platform.Top - activeAnimation.frameHeight / 2);
+                        velocity.Y = 0;
+                        mainHitbox.X = (int)(position.X - activeAnimation.frameWidth / 2);
+                        mainHitbox.Y = (int)(position.Y - activeAnimation.frameHeight / 2);
+                        if (currentState != State.Jumping || currentState != State.Falling)
+                        {
+                            currentState = State.OnGround;
+                            currentMoveState = MoveState.Standing;
+                        }
+                    }
+                }
+
+
+
+            }
+        }
         public void Update(GameTime gameTime)
         {
-            prePosition = position;
-            gamePadState = GamePad.GetState(playerNumber, GamePadDeadZone.None);
-            GetInputLeft();
-            GetInputRight();
-            GetAngle();
-            ApplyFriction(gameTime);
-            ControllerMove(gameTime);
-            StateManager();
-
-            ApplyGravity(gameTime);
-            Jump(gameTime);
-
-
-            DirectionCheck();
-            
-            position += velocity;
-            position.X = MathHelper.Clamp(position.X, playerBody.frameWidth / 2, windowWidth - playerBody.frameWidth / 2);
-            position.Y = MathHelper.Clamp(position.Y, (playerBody.frameHeight + playerHead.frameHeight) / 2, windowHeight - playerBody.frameHeight  / 2);
-            
-            if (currentMoveState == MoveState.Standing)
+            if (active)
             {
-                playerWalking.active = false;
-                playerBody.active = true;
-                playerRunning.active = false;
-                playerJump.active = false;
-                playerCrouch.active = false;
-                activeAnimation = playerBody;
-                headPosition = new Vector2(position.X, position.Y - (playerBody.frameHeight + playerHead.frameHeight) / 2);
-                armPosition = new Vector2(position.X, position.Y - (playerBody.frameHeight) / 2);
+                prePosition = position;
+                gamePadState = GamePad.GetState(playerNumber, GamePadDeadZone.None);
+                GetInputLeft();
+                GetInputRight();
+                GetAngle();
+                ApplyFriction(gameTime);
+                ControllerMove(gameTime);
+                StateManager();
 
-            }
-            if (currentMoveState == MoveState.Walking)
-            {
-                playerWalking.active = true;
-                playerBody.active = false;
-                playerRunning.active = false;
-                playerJump.active = false;
-                playerCrouch.active = false;
-                activeAnimation = playerWalking;
-                headPosition = new Vector2(position.X, position.Y - (playerBody.frameHeight + playerHead.frameHeight) / 2);
-                armPosition = new Vector2(position.X, position.Y - (playerBody.frameHeight) / 2);
+                ApplyGravity(gameTime);
+                Jump(gameTime);
 
-            }
-            if (currentMoveState == MoveState.Running && (currentState != State.Jumping && currentState != State.Falling))
-            {
-                playerWalking.active = false;
-                playerBody.active = false;
-                playerRunning.active = true;
-                playerJump.active = false;
-                playerCrouch.active = false;
-                activeAnimation = playerRunning;
-                if (!flipped)
-                {
-                    headPosition = new Vector2(position.X + 25, position.Y + 9 - (playerBody.frameHeight + playerHead.frameHeight) / 2);
-                    armPosition = new Vector2(position.X + 18, position.Y + 8 - (playerBody.frameHeight) / 2);
-                    if (velocity.X < 0)
-                    {
-                        playerWalking.reversed = true;
-                        playerRunning.reversed = true;
-                    }
-                    else 
-                    {
-                        playerWalking.reversed = false;
-                        playerRunning.reversed = false;
-                    }
-                }
-                else
-                {
-                    if (velocity.X > 0)
-                    {
-                        playerWalking.reversed = true;
-                        playerRunning.reversed = true;
-                    }
-                    else
-                    {
-                        playerWalking.reversed = false;
-                        playerRunning.reversed = false;
-                    }
-                    headPosition = new Vector2(position.X - 25, position.Y + 9 - (playerBody.frameHeight + playerHead.frameHeight) / 2);
 
-                    armPosition = new Vector2(position.X - 18, position.Y + 8 - (playerBody.frameHeight) / 2);
-                }
-            }
-            if (currentMoveState == MoveState.Standing)
-            {
-                if (gamePadState.IsButtonDown(Buttons.X))
+                DirectionCheck();
+
+                position += velocity;
+                position.X = MathHelper.Clamp(position.X, playerBody.frameWidth / 2, windowWidth - playerBody.frameWidth / 2);
+                position.Y = MathHelper.Clamp(position.Y, (playerBody.frameHeight + playerHead.frameHeight) / 2, windowHeight - playerBody.frameHeight / 2);
+
+                if (currentMoveState == MoveState.Standing)
                 {
                     playerWalking.active = false;
+                    playerBody.active = true;
+                    playerRunning.active = false;
+                    playerJump.active = false;
+                    playerCrouch.active = false;
+                    activeAnimation = playerBody;
+                    headPosition = new Vector2(position.X, position.Y - (playerBody.frameHeight + playerHead.frameHeight) / 2);
+                    armPosition = new Vector2(position.X, position.Y - (playerBody.frameHeight) / 2);
+
+                }
+                if (currentMoveState == MoveState.Walking)
+                {
+                    playerWalking.active = true;
                     playerBody.active = false;
                     playerRunning.active = false;
                     playerJump.active = false;
-                    playerCrouch.active = true;
-                    activeAnimation = playerJump;
+                    playerCrouch.active = false;
+                    activeAnimation = playerWalking;
+                    headPosition = new Vector2(position.X, position.Y - (playerBody.frameHeight + playerHead.frameHeight) / 2);
+                    armPosition = new Vector2(position.X, position.Y - (playerBody.frameHeight) / 2);
+
+                }
+                if (currentMoveState == MoveState.Running && (currentState != State.Jumping && currentState != State.Falling))
+                {
+                    playerWalking.active = false;
+                    playerBody.active = false;
+                    playerRunning.active = true;
+                    playerJump.active = false;
+                    playerCrouch.active = false;
+                    activeAnimation = playerRunning;
                     if (!flipped)
                     {
-                        headPosition = new Vector2(position.X-5, position.Y + jumpList[4 - playerCrouch.frameIndex] - (playerBody.frameHeight + playerHead.frameHeight) / 2);
-                        armPosition = new Vector2(position.X - 5, position.Y + jumpList[4 - playerCrouch.frameIndex] - (playerBody.frameHeight) / 2);
+                        headPosition = new Vector2(position.X + 25, position.Y + 9 - (playerBody.frameHeight + playerHead.frameHeight) / 2);
+                        armPosition = new Vector2(position.X + 18, position.Y + 8 - (playerBody.frameHeight) / 2);
+                        if (velocity.X < 0)
+                        {
+                            playerWalking.reversed = true;
+                            playerRunning.reversed = true;
+                        }
+                        else
+                        {
+                            playerWalking.reversed = false;
+                            playerRunning.reversed = false;
+                        }
                     }
                     else
                     {
-                        headPosition = new Vector2(position.X + 5, position.Y + jumpList[4 - playerCrouch.frameIndex] - (playerBody.frameHeight + playerHead.frameHeight) / 2);
-                        armPosition = new Vector2(position.X + 5, position.Y + jumpList[4 - playerCrouch.frameIndex] - (playerBody.frameHeight) / 2);
+                        if (velocity.X > 0)
+                        {
+                            playerWalking.reversed = true;
+                            playerRunning.reversed = true;
+                        }
+                        else
+                        {
+                            playerWalking.reversed = false;
+                            playerRunning.reversed = false;
+                        }
+                        headPosition = new Vector2(position.X - 25, position.Y + 9 - (playerBody.frameHeight + playerHead.frameHeight) / 2);
+
+                        armPosition = new Vector2(position.X - 18, position.Y + 8 - (playerBody.frameHeight) / 2);
                     }
                 }
-            }
-            if (currentState == State.Jumping || currentState == State.Falling)
-            {
-                playerWalking.active = false;
-                playerJump.active = true;
-                playerBody.active = false;
-                playerRunning.active = false;
-                playerCrouch.active = false;
-                activeAnimation = playerJump;
-                headPosition = new Vector2(position.X, position.Y+jumpList[playerJump.frameIndex] - (playerBody.frameHeight + playerHead.frameHeight) / 2);
-                armPosition = new Vector2(position.X, position.Y + jumpList[playerJump.frameIndex] - (playerBody.frameHeight) / 2);
-                
-            }
-            
-            playerWalking.position = position;
-            playerCrouch.position = position;
-            playerJump.position = position;
-            playerRunning.position = position;
-            playerBody.position = position;
-            playerHead.position = headPosition;
-            playerArm.position = armPosition;
 
-            mainHitbox = new Rectangle((int)position.X - activeAnimation.frameWidth / 2, (int)position.Y - activeAnimation.frameHeight / 2, activeAnimation.frameWidth, activeAnimation.frameHeight);
-            PlatformCollision();
-            playerJump.Update(gameTime);
-            playerBody.Update(gameTime);
-            playerHead.Update(gameTime);
-            playerWalking.Update(gameTime);
-            playerArm.angle = armAngle;
-            playerArm.Update(gameTime);
-            playerCrouch.Update(gameTime);
-            playerRunning.Update(gameTime);
-            activeAnimation.Update(gameTime);
-            if(flipped)
-            {
-                playerArm.origin = new Vector2(playerArm.frameWidth , 0);
-               
-            }
-            else
-            {
-                playerArm.origin = new Vector2(0,0);
-            }
-         
-            if (flipped)
-            {
+                if (gamePadState.IsButtonDown(Buttons.X) || gamePadState.IsButtonDown(Buttons.B))
+                {
+                    if (currentMoveState == MoveState.Standing)
+                    {
+                        playerWalking.active = false;
+                        playerBody.active = false;
+                        playerRunning.active = false;
+                        playerJump.active = false;
+                        playerCrouch.active = true;
+                        activeAnimation = playerJump;
 
-                weaponPosition = armPosition;
-            }
-            else
-            {
-                weaponPosition = armPosition ;
-            }
-            if (activeWeapon != null)
-            {
-                activeWeapon.position = weaponPosition;
-                activeWeapon.gunAngle = armAngle;
+                        if (!flipped)
+                        {
+                            headPosition = new Vector2(position.X - 5, position.Y + jumpList[4 - playerCrouch.frameIndex] - (playerBody.frameHeight + playerHead.frameHeight) / 2);
+                            armPosition = new Vector2(position.X - 5, position.Y + jumpList[4 - playerCrouch.frameIndex] - (playerBody.frameHeight) / 2);
+                        }
+                        else
+                        {
+                            headPosition = new Vector2(position.X + 5, position.Y + jumpList[4 - playerCrouch.frameIndex] - (playerBody.frameHeight + playerHead.frameHeight) / 2);
+                            armPosition = new Vector2(position.X + 5, position.Y + jumpList[4 - playerCrouch.frameIndex] - (playerBody.frameHeight) / 2);
+                        }
+                    }
+                    if (gamePadState.IsButtonDown(Buttons.B))
+                    {
+                        currentMoveState = MoveState.Crouch;
+                    }
+                }
 
+
+                if (currentState == State.Jumping || currentState == State.Falling)
+                {
+                    playerWalking.active = false;
+                    playerJump.active = true;
+                    playerBody.active = false;
+                    playerRunning.active = false;
+                    playerCrouch.active = false;
+                    activeAnimation = playerJump;
+                    headPosition = new Vector2(position.X, position.Y + jumpList[playerJump.frameIndex] - (playerBody.frameHeight + playerHead.frameHeight) / 2);
+                    armPosition = new Vector2(position.X, position.Y + jumpList[playerJump.frameIndex] - (playerBody.frameHeight) / 2);
+
+                }
+
+                playerWalking.position = position;
+                playerCrouch.position = position;
+                playerJump.position = position;
+                playerRunning.position = position;
+                playerBody.position = position;
+                playerHead.position = headPosition;
+                playerArm.position = armPosition;
+                footBox = new Rectangle((int)position.X - playerBody.frameWidth / 2, (int)position.Y + (playerBody.frameHeight / 2) - 20, playerBody.frameWidth, 20);
+
+                mainHitbox = new Rectangle((int)position.X - activeAnimation.frameWidth / 2, (int)position.Y - activeAnimation.frameHeight / 2, activeAnimation.frameWidth, activeAnimation.frameHeight);
+                PlatformCollision();
+                StairCollision();
+                playerJump.Update(gameTime);
+                playerBody.Update(gameTime);
+                playerHead.Update(gameTime);
+                playerWalking.Update(gameTime);
+                playerArm.angle = armAngle;
+                playerArm.Update(gameTime);
+                playerCrouch.Update(gameTime);
+                playerRunning.Update(gameTime);
+                activeAnimation.Update(gameTime);
+                if (flipped)
+                {
+                    playerArm.origin = new Vector2(playerArm.frameWidth, 0);
+
+                }
+                else
+                {
+                    playerArm.origin = new Vector2(0, 0);
+                }
+
+                if (flipped)
+                {
+
+                    weaponPosition = armPosition;
+                }
+                else
+                {
+                    weaponPosition = armPosition;
+                }
+                if (activeWeapon != null)
+                {
+                    activeWeapon.position = weaponPosition;
+                    activeWeapon.gunAngle = armAngle;
+
+                }
+                if (activeWeapon != null)
+                {
+                    activeWeapon.Update(gameTime);
+                }
+
+                headHitbox = new Rectangle((int)headPosition.X - playerHead.frameWidth / 2, (int)headPosition.Y - playerHead.frameHeight / 2, playerHead.frameWidth, playerHead.frameHeight);
+                playerTransformation =
+                           Matrix.CreateTranslation(new Vector3(-activeAnimation.origin, 0.0f)) *
+                           Matrix.CreateScale(activeAnimation.scale) *
+                           Matrix.CreateTranslation(new Vector3(activeAnimation.position, 0.0f));
+                Matrix.CreateTranslation(new Vector3(activeAnimation.position, 0.0f));
+
+                headTransformation = Matrix.CreateTranslation(new Vector3(-playerHead.origin, 0.0f)) *
+                           Matrix.CreateScale(playerHead.scale) *
+                           Matrix.CreateTranslation(new Vector3(playerHead.position, 0.0f));
+                Matrix.CreateTranslation(new Vector3(playerHead.position, 0.0f));
+                if(health <=0)
+                {
+                    PlayerDeath();
+                    active = false;
+                }
             }
-            if (activeWeapon != null)
-            {
-                activeWeapon.Update(gameTime);
-            }
-            
-            
-            playerTransformation =
-                       Matrix.CreateTranslation(new Vector3(-activeAnimation.origin, 0.0f)) *
-                       Matrix.CreateScale(activeAnimation.scale) *
-                       Matrix.CreateTranslation(new Vector3(activeAnimation.position, 0.0f));
-            Matrix.CreateTranslation(new Vector3(activeAnimation.position, 0.0f));
 
         }
+        Random random = new Random();
+        public void PlayerDeath()
+        {
+            if(score >10)
+            {
+                for(int i = 0;i<score/20;i++)
+                {
+                    Game1.AddPickupPlayerDeath(position.X, position.Y, new Vector2(0, 40), new Vector2(random.Next(-10, 10), random.Next(-1, 0)));
+                   
+                }
+                score -= score / 2;
+            }
+            Game1.RespawnPlayer((int)playerNumber);
+        }
         public Matrix playerTransformation;
+        public Matrix headTransformation;
         public void Draw(SpriteBatch sb)
         {
-            playerWalking.Draw(sb);
-            playerCrouch.Draw(sb);
-            playerJump.Draw(sb);
-            playerRunning.Draw(sb);
-           playerHead.Draw(sb);
-           playerBody.Draw(sb);
-           playerArm.Draw(sb);
-           if (activeWeapon != null)
-           {
-               activeWeapon.Draw(sb);
-           }
+            if (active)
+            {
+                float healthPercentage = health / 100; ;
+                float visibleWidth = (float)healthtexture.Width * healthPercentage;
+
+                Rectangle healthRectangle = new Rectangle((int)position.X - activeAnimation.frameWidth / 2,
+                                               (int)position.Y + activeAnimation.frameHeight / 2 +10,
+                                               (int)(visibleWidth),
+                                               healthtexture.Height);
+
+                sb.Draw(healthtexture, healthRectangle, Color.Green);
+                playerWalking.Draw(sb);
+                playerCrouch.Draw(sb);
+                playerJump.Draw(sb);
+                playerRunning.Draw(sb);
+                playerHead.Draw(sb);
+                playerBody.Draw(sb);
+                playerArm.Draw(sb);
+                if (activeWeapon != null)
+                {
+                    activeWeapon.Draw(sb);
+                }
+            }
         }
 
     }
