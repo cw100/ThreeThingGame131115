@@ -108,7 +108,7 @@ namespace ThreeThingGame131115
                  weaponAnimation.origin = new Vector2(-26, -10) + weaponHandle;
              
              }
-             shootOffset = new Vector2(weaponAnimation.frameWidth + weaponHandle.X + 26 - projectileTex.Width/2 , weaponHandle.Y - projectileTex.Height/2 +10);
+             shootOffset = new Vector2(weaponAnimation.frameWidth + weaponHandle.X + 10 - projectileTex.Width/2 , weaponHandle.Y - projectileTex.Height/2 +10);
              if (flipped)
              {
                  shootAngle *= -1;

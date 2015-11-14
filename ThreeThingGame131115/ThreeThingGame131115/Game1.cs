@@ -22,21 +22,21 @@ namespace ThreeThingGame131115
         bool gameActive;
          static List<Animation> hats;
          static List<Vector2> hatPos;
-        
-      public static Animation playerHead
-        , playerBody
-        , playerArm
-        , playerRunning
-        , playerJump
-        ,playerCrouch
-        , playerWalking
-        ,weaponAnimation
-        , bulletAnimation
-        ,platformAnimation
-        ,pickupAnimation
-        ,backGroundAnimation
-        ,scoreAnimation,
-        playButtonAnimation, exitButtonAnimation;
+
+         public static Animation playerHead
+           , playerBody
+           , playerArm
+           , playerRunning
+           , playerJump
+           , playerCrouch
+           , playerWalking
+           , weaponAnimation
+           , bulletAnimation
+           , platformAnimation
+           , pickupAnimation
+           , backGroundAnimation
+           , scoreAnimation,
+           playButtonAnimation, exitButtonAnimation, coinsAnimation, clockAnimation, noteAnimation, piggybankAnimation;
       public static Texture2D
             playerHeadTex
         , playerBodyTex
@@ -58,7 +58,7 @@ namespace ThreeThingGame131115
         ,playerOneWin
         ,playerTwoWin,
         playerThreeWin,
-        playerFourWin;
+        playerFourWin, startTex, noteTex,piggybankTex,coinsTex,clockTex,background;
 
       public enum GameState
       {
@@ -74,7 +74,7 @@ namespace ThreeThingGame131115
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
-            graphics.IsFullScreen = false;
+            graphics.IsFullScreen = true;
             graphics.PreferredBackBufferHeight = 1080;
 
             graphics.PreferredBackBufferWidth = 1920;
@@ -96,6 +96,7 @@ namespace ThreeThingGame131115
         List<Animation> selectHats;
         public void InitializeSelectScreen()
         {
+           
             readyPlayers = 0;
             readyPlayerChecker = new List<bool>();
             readyPlayerChecker.Add(false);
@@ -108,53 +109,53 @@ namespace ThreeThingGame131115
             selectIconsHead = new List<Animation>();
             selectIcon = new Animation();
             selectIcon.LoadTexture(playerBodyTex);
-            selectIcon.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth / 5, graphics.PreferredBackBufferHeight / 2), 0,Color.White);
+            selectIcon.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth / 5, graphics.PreferredBackBufferHeight * 2 / 3), 0, Color.White);
             selectIconsBody.Add(selectIcon);
             selectIcon = new Animation();
             selectIcon.LoadTexture(playerBodyTex);
-            selectIcon.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth*2 / 5, graphics.PreferredBackBufferHeight / 2), 0, Color.White);
+            selectIcon.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth*2 / 5, graphics.PreferredBackBufferHeight *2/ 3), 0, Color.White);
             selectIconsBody.Add(selectIcon);
             selectIcon = new Animation();
             selectIcon.LoadTexture(playerBodyTex);
-            selectIcon.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth *3/ 5, graphics.PreferredBackBufferHeight / 2), 0, Color.White);
+            selectIcon.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth * 3 / 5, graphics.PreferredBackBufferHeight * 2 / 3), 0, Color.White);
             selectIconsBody.Add(selectIcon);
             selectIcon = new Animation();
             selectIcon.LoadTexture(playerBodyTex);
-            selectIcon.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth*4 / 5, graphics.PreferredBackBufferHeight / 2), 0, Color.White);
+            selectIcon.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth * 4 / 5, graphics.PreferredBackBufferHeight * 2 / 3), 0, Color.White);
             selectIconsBody.Add(selectIcon);
 
             selectIcon = new Animation();
             selectIcon.LoadTexture(playerHeadTex);
-            selectIcon.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth / 5, graphics.PreferredBackBufferHeight / 2 -playerHeadTex.Height / 2- playerBodyTex.Height / 2), 0, Color.White);
+            selectIcon.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth / 5, graphics.PreferredBackBufferHeight * 2 / 3 - playerHeadTex.Height / 2 - playerBodyTex.Height / 2), 0, Color.White);
             selectIconsHead.Add(selectIcon);
             selectIcon = new Animation();
             selectIcon.LoadTexture(playerHeadTex);
-            selectIcon.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth * 2 / 5, graphics.PreferredBackBufferHeight / 2 - playerHeadTex.Height / 2 - playerBodyTex.Height / 2), 0, Color.White);
+            selectIcon.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth * 2 / 5, graphics.PreferredBackBufferHeight * 2 / 3 - playerHeadTex.Height / 2 - playerBodyTex.Height / 2), 0, Color.White);
             selectIconsHead.Add(selectIcon);
             selectIcon = new Animation();
             selectIcon.LoadTexture(playerHeadTex);
-            selectIcon.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth * 3 / 5, graphics.PreferredBackBufferHeight / 2 - playerHeadTex.Height / 2 - playerBodyTex.Height / 2), 0, Color.White);
+            selectIcon.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth * 3 / 5, graphics.PreferredBackBufferHeight * 2 / 3 - playerHeadTex.Height / 2 - playerBodyTex.Height / 2), 0, Color.White);
             selectIconsHead.Add(selectIcon);
             selectIcon = new Animation();
             selectIcon.LoadTexture(playerHeadTex);
-            selectIcon.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth * 4 / 5, graphics.PreferredBackBufferHeight / 2 - playerHeadTex.Height / 2 - playerBodyTex.Height / 2), 0, Color.White);
+            selectIcon.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth * 4 / 5, graphics.PreferredBackBufferHeight * 2 / 3 - playerHeadTex.Height / 2 - playerBodyTex.Height / 2), 0, Color.White);
             selectIconsHead.Add(selectIcon);
 
             selectIcon = new Animation();
             selectIcon.LoadTexture(playerHeadTex);
-            selectIcon.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth / 5, graphics.PreferredBackBufferHeight / 2  - playerBodyTex.Height / 2), 0, Color.White);
+            selectIcon.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth / 5, graphics.PreferredBackBufferHeight * 2 / 3 - playerBodyTex.Height / 2), 0, Color.White);
             selectHats.Add(selectIcon);
             selectIcon = new Animation();
             selectIcon.LoadTexture(playerHeadTex);
-            selectIcon.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth * 2 / 5, graphics.PreferredBackBufferHeight / 2  - playerBodyTex.Height / 2), 0, Color.White);
+            selectIcon.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth * 2 / 5, graphics.PreferredBackBufferHeight * 2 / 3 - playerBodyTex.Height / 2), 0, Color.White);
             selectHats.Add(selectIcon);
             selectIcon = new Animation();
             selectIcon.LoadTexture(playerHeadTex);
-            selectIcon.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth * 3 / 5, graphics.PreferredBackBufferHeight / 2  - playerBodyTex.Height / 2), 0, Color.White);
+            selectIcon.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth * 3 / 5, graphics.PreferredBackBufferHeight * 2 / 3 - playerBodyTex.Height / 2), 0, Color.White);
             selectHats.Add(selectIcon);
             selectIcon = new Animation();
             selectIcon.LoadTexture(playerHeadTex);
-            selectIcon.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth * 4 / 5, graphics.PreferredBackBufferHeight / 2 - - playerBodyTex.Height / 2 ), 0, Color.White);
+            selectIcon.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth * 4 / 5, graphics.PreferredBackBufferHeight * 2 / 3 - -playerBodyTex.Height / 2), 0, Color.White);
             selectHats.Add(selectIcon);
 
         }
@@ -200,7 +201,7 @@ namespace ThreeThingGame131115
             selectIcon = new Animation();
             selectIcon = hatsHats[num][playerHatNums[num]];
             Vector2 headPos = new Vector2(graphics.PreferredBackBufferWidth * (num + 1) / 5   ,
-                graphics.PreferredBackBufferHeight / 2 - playerBodyTex.Height  - playerHeadTex.Height);
+                 graphics.PreferredBackBufferHeight * 2 / 3 - playerBodyTex.Height/2 - playerHeadTex.Height/2);
             selectIcon.Initialize(1, 1, headPos  - new Vector2(playerHeadTex.Width / 2, playerHeadTex.Height / 2) * 2 + hatPos[playerHatNums[num]], 0, Color.White);
            
             selectHats[num] = selectIcon;
@@ -246,6 +247,14 @@ namespace ThreeThingGame131115
                 StartGame();
                 currentGameState = GameState.Playing;
             }
+            else
+                if (GamePad.GetState(PlayerIndex.One).Buttons.Y == ButtonState.Pressed)
+                {
+
+                    noPlayers = readyPlayers;
+                    StartGame();
+                    currentGameState = GameState.Playing;
+                }
 
 
         }
@@ -255,18 +264,27 @@ namespace ThreeThingGame131115
             {
                 if (!readyPlayerChecker[i])
                 {
+                    selectIconsBody[i].color = Color.White;
                     selectIconsBody[i].Draw(spriteBatch);
-                    
+                    selectIconsHead[i].color = Color.White;
                     selectIconsHead[i].Draw(spriteBatch);
+
                     selectHats[i].origin = new Vector2(0, 0);
+                    selectHats[i].color = Color.White;
                     selectHats[i].Draw(spriteBatch);
+                    spriteBatch.Draw(startTex, new Vector2(graphics.PreferredBackBufferWidth * (i + 1) / 5 - 32,
+                 graphics.PreferredBackBufferHeight * 2 / 3 + 64), Color.White);
                 }
                 else
                 {
+                    spriteBatch.Draw(startTex, new Vector2(graphics.PreferredBackBufferWidth * (i + 1) / 5 - 32,
+                 graphics.PreferredBackBufferHeight * 2 / 3 + 64), Color.Green);
+                    selectIconsBody[i].color = Color.Red;
                     selectIconsBody[i].Draw(spriteBatch);
-                    
+                    selectIconsHead[i].color = Color.Red;
                     selectIconsHead[i].Draw(spriteBatch);
                     selectHats[i].origin = new Vector2(0, 0);
+                    selectHats[i].color = Color.White;
                     selectHats[i].Draw(spriteBatch);
 
                 }
@@ -306,13 +324,10 @@ namespace ThreeThingGame131115
                  Texture2D hatTexture = LoadContent(this.Content, "ricehat");
                  hatTexs.Add(hatTexture);
 
-
-
                  hatPos.Add(new Vector2(8, 10));
                  hat = new Animation();
                  hat.LoadTexture(hatTexture);
                  hats.Add(hat);
-                 hatPos.Add(new Vector2(14, 5));
                  hatTexture = LoadContent(this.Content, "boater");
                  hatTexs.Add(hatTexture);
                  hat = new Animation();
@@ -400,7 +415,6 @@ namespace ThreeThingGame131115
                  hat = new Animation();
                  hat.LoadTexture(hatTexture);
                  hats.Add(hat);
-                 hatPos.Add(new Vector2(14, 5));
                  hatTexture = LoadContent(this.Content, "boater");
                  hatTexs.Add(hatTexture);
                  hat = new Animation();
@@ -489,7 +503,7 @@ namespace ThreeThingGame131115
                  hat = new Animation();
                  hat.LoadTexture(hatTexture);
                  hats.Add(hat);
-                 hatPos.Add(new Vector2(14, 5));
+              
                  hatTexture = LoadContent(this.Content, "boater");
                  hatTexs.Add(hatTexture);
                  hat = new Animation();
@@ -578,7 +592,6 @@ namespace ThreeThingGame131115
                  hat = new Animation();
                  hat.LoadTexture(hatTexture);
                  hats.Add(hat);
-                 hatPos.Add(new Vector2(14, 5));
                  hatTexture = LoadContent(this.Content, "boater");
                  hatTexs.Add(hatTexture);
                  hat = new Animation();
@@ -688,11 +701,26 @@ namespace ThreeThingGame131115
             AddPlatform();
             AddStairs();
         }
-        Random random = new Random();
+       static Random random = new Random();
         public void AddPickup()
         {
             Pickup pickup = new Pickup();
             pickupAnimation = new Animation();
+            switch (random.Next(1, 5))
+            {
+                case 1:
+                    pickupTex = clockTex;
+                    break;
+                case 2:
+                    pickupTex = noteTex;
+                    break;
+                case 3:
+                    pickupTex = coinsTex;
+                    break;
+                case 4:
+                    pickupTex = piggybankTex;
+                    break;
+            }
             pickupAnimation.LoadTexture(pickupTex);
             pickup.Initialize(pickupAnimation, new Vector2(random.Next(1920), random.Next(1080)), new Vector2(0, 40f),new Vector2 (0,0), 10);
             pickups.Add(pickup);
@@ -728,10 +756,11 @@ namespace ThreeThingGame131115
 
             weaponAnimation.LoadTexture(weaponTex);
             Weapon weapon = new Weapon();
-            weapon.Initialize(weaponAnimation, bulletTex, new Vector2(0, 0), new Vector2(25, 0), new Vector2(4, 14), 0, true, 1f, TimeSpan.FromSeconds(0.05), 10, (PlayerIndex)playerNum);
+            weapon.Initialize(weaponAnimation, bulletTex, new Vector2(0, 0), new Vector2(10, 0), new Vector2(6, 14), 0, true, 1f, TimeSpan.FromSeconds(0.3), 10, (PlayerIndex)playerNum);
+             
             players[playerNum] = new Player();
             players[playerNum].Initialize(healthTexture, playerBody, playerRunning, playerWalking, playerCrouch, playerJump, playerHead, playerArm,
-                    new Vector2(200 * playerNum, 200), graphics.GraphicsDevice.Viewport.Width, graphics.GraphicsDevice.Viewport.Height,
+                   new Vector2(random.Next(1920), random.Next(1080)), graphics.GraphicsDevice.Viewport.Width, graphics.GraphicsDevice.Viewport.Height,
                     new Vector2(0, 40f), 200, new Vector2(0, 15), (PlayerIndex)playerNum, score, hatTexs[playerHatNums[playerNum]], hatPos[playerHatNums[playerNum]]);
             players[playerNum].activeWeapon = weapon;
         }
@@ -751,7 +780,8 @@ namespace ThreeThingGame131115
             playerJumpTex = LoadContent(this.Content, "StickJump");
             playerCrouchTex = LoadContent(this.Content, "StickLand");
             playerWalkingTex = LoadContent(this.Content, "StickWalking");
-            weaponTex = LoadContent(this.Content, "gun");
+            background = LoadContent(this.Content, "background");
+            weaponTex = LoadContent(this.Content, "Pistol");
             bulletTex = LoadContent(this.Content, "Bullet");
             platformTex = LoadContent(this.Content, "platform");
             pickupTex = LoadContent(this.Content, "Good");
@@ -769,7 +799,11 @@ namespace ThreeThingGame131115
             playerThreeWin = LoadContent(this.Content, "playerThreeWin");
 
             playerFourWin = LoadContent(this.Content, "playerFourWin");
-
+            startTex = LoadContent(this.Content, "start");
+            noteTex = LoadContent(this.Content, "note");
+            coinsTex = LoadContent(this.Content, "coins");
+            piggybankTex = LoadContent(this.Content, "piggybank");
+            clockTex = LoadContent(this.Content, "clock"); 
         }
         
 
@@ -917,12 +951,12 @@ namespace ThreeThingGame131115
             platforms.Add(platform);
             platformRectangles.Add(platform.hitBox);
         }
+        int noPlayers = 4;
         public void LoadPlayers()
         {
             players = new List<Player>();
-            for (int i = 0; i < 4; i++)
-            {
-                playerBody = new Animation();
+            for (int i = 0; i < noPlayers; i++)
+            {     playerBody = new Animation();
                 playerHead = new Animation();
                 playerArm = new Animation();
                 playerRunning = new Animation();
@@ -941,10 +975,10 @@ namespace ThreeThingGame131115
                 weaponAnimation.LoadTexture(weaponTex);
                 
                Weapon weapon = new Weapon();
-               weapon.Initialize(weaponAnimation, bulletTex, new Vector2(0, 0), new Vector2(25, 0),new Vector2(4,14), 0, true, 1f, TimeSpan.FromSeconds(0.05), 10, (PlayerIndex)i);
+               weapon.Initialize(weaponAnimation, bulletTex, new Vector2(0, 0), new Vector2(10, 0), new Vector2(6, 14), 0, true, 1f, TimeSpan.FromSeconds(0.3), 10, (PlayerIndex)i);
                 Player player = new Player();
                 player.Initialize(healthTexture,playerBody, playerRunning, playerWalking, playerCrouch, playerJump, playerHead, playerArm,
-                    new Vector2(200*i, 200), graphics.GraphicsDevice.Viewport.Width, graphics.GraphicsDevice.Viewport.Height,
+                  new Vector2(random.Next(1920), random.Next(1080)), graphics.GraphicsDevice.Viewport.Width, graphics.GraphicsDevice.Viewport.Height,
                     new Vector2(0, 40f), 200, new Vector2(0, 15), (PlayerIndex)i, 0, hatTexs[playerHatNums[i]], hatPos[playerHatNums[i]]);
                 player.activeWeapon = weapon;
                 players.Add(player);
@@ -1238,10 +1272,14 @@ namespace ThreeThingGame131115
             }
             if(currentGameState == GameState.Menu)
             {
+                spriteBatch.Draw(background, new Vector2(0 ,0),Color.White);
+                
                 DrawMenu();
             }
             if (currentGameState == GameState.Select)
             {
+                spriteBatch.Draw(background, new Vector2(0, 0), Color.White);
+                
                 DrawIcons(spriteBatch);
             }
             if (currentGameState == GameState.Playing)
