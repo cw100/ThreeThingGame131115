@@ -10,7 +10,9 @@ namespace ThreeThingGame131115
 {
     class Player
     {
-
+        Vector2 weaponPosition;
+        public float health = 100;
+        public Animation activeAnimation;
         Animation playerRunning;
         Animation playerBody;
         Animation playerHead;
@@ -18,14 +20,14 @@ namespace ThreeThingGame131115
         Animation playerJump;
         Animation playerCrouch;
         Animation playerWalking;
-        Vector2 position;
+        public Vector2 position, prePosition;
         Vector2 gravity;
         Vector2 headPosition;
         Vector2 armPosition;
-        Vector2 velocity;
+        public Vector2 velocity;
         Vector2 preJumpPosition;
         Vector2 jumpSpeed;
-        Rectangle mainHitbox, headHitbox;
+       public Rectangle mainHitbox, headHitbox;
         Vector2 armAngleVector;
         float armAngle;
         float windowWidth, windowHeight;
@@ -35,7 +37,7 @@ namespace ThreeThingGame131115
         GamePadState gamePadState;
         Vector2 stickInputRight, stickInputLeft;
         List<float> jumpList = new List<float>();
-        
+        public Weapon activeWeapon;
         public enum State
         {
             Jumping,
@@ -54,6 +56,8 @@ namespace ThreeThingGame131115
         public void Initialize(Animation playerBody, Animation playerRunning, Animation playerWalking, Animation playerCrouch, Animation playerJump, Animation playerHead, Animation playerArm, Vector2 position, float windowWidth, float windowHeight, Vector2 gravity,
           float playerSpeed, Vector2 jumpSpeed, PlayerIndex playerNumber)
         {
+           
+
             this.playerWalking = playerWalking;
             this.playerCrouch = playerCrouch;
             this.playerJump = playerJump;
@@ -81,7 +85,7 @@ namespace ThreeThingGame131115
             playerWalking.active = false;
             playerHead.Initialize(1, 1, headPosition, 0, Color.White);
             playerArm.Initialize(1, 1, armPosition, 0, Color.White);
-            mainHitbox = new Rectangle((int)position.X, (int)position.Y, playerBody.frameWidth, playerBody.frameHeight);   
+            mainHitbox = new Rectangle((int)position.X - playerBody.frameWidth / 2, (int)position.Y - playerBody.frameHeight / 2, playerBody.frameWidth, playerBody.frameHeight);   
             jumpList.Add(26);
             jumpList.Add(22);
             jumpList.Add(16);
@@ -91,7 +95,7 @@ namespace ThreeThingGame131115
         }
         public void GetInputRight()
         {
-            gamePadState = GamePad.GetState(playerNumber, GamePadDeadZone.None);
+          
             float deadzone = 0.25f;
             stickInputRight = new Vector2(gamePadState.ThumbSticks.Right.X, gamePadState.ThumbSticks.Right.Y);
               if (stickInputRight.Length() < deadzone)
@@ -107,7 +111,7 @@ namespace ThreeThingGame131115
         }
         public void GetInputLeft()
         {
-            gamePadState = GamePad.GetState(playerNumber, GamePadDeadZone.None);
+           
             float deadzone = 0.25f;
             stickInputLeft = new Vector2(gamePadState.ThumbSticks.Left.X, gamePadState.ThumbSticks.Left.Y);
             if (stickInputLeft.Length() < deadzone)
@@ -134,10 +138,19 @@ namespace ThreeThingGame131115
                     playerRunning.flip = SpriteEffects.FlipHorizontally;
                     playerJump.flip = SpriteEffects.FlipHorizontally;
                     playerCrouch.flip = SpriteEffects.FlipHorizontally;
+                    if (activeWeapon != null)
+                    {
+                        activeWeapon.weaponAnimation.flip = SpriteEffects.FlipHorizontally;
+                    }
+                    activeWeapon.flipped = true;
                     flipped = true;
                 }
                 else
                 {
+                    if (activeWeapon != null)
+                    {
+                        activeWeapon.weaponAnimation.flip = SpriteEffects.None;
+                    }
                     playerWalking.flip = SpriteEffects.None;
                     playerCrouch.flip = SpriteEffects.None;
                     playerJump.flip = SpriteEffects.None;
@@ -145,6 +158,7 @@ namespace ThreeThingGame131115
                     playerHead.flip = SpriteEffects.None;
                     playerArm.flip = SpriteEffects.None;
                     playerBody.flip = SpriteEffects.None;
+                    activeWeapon.flipped = false;
                     flipped = false;
                 }
             }
@@ -234,9 +248,62 @@ namespace ThreeThingGame131115
                }
                
            }
-       
+           Vector2 Rotate(Vector2 vector, float angle, Vector2 origin)
+           {
+               vector.X = (float)Math.Cos(angle) * (vector.X - origin.X) - (float)Math.Cos(angle) * (vector.Y - origin.Y) + origin.X;
+               vector.Y = (float)Math.Sin(angle) * (vector.X - origin.X) + (float)Math.Sin(angle) * (vector.Y - origin.Y) + origin.Y;
+               return new Vector2(vector.X, vector.Y);
+           }
+        public void PlatformCollision()
+           {
+               foreach (Rectangle platform in Game1.platformRectangles)
+               {
+                   if (Collision.RectangleCollisionLeft(mainHitbox, platform, velocity))
+                   {
+                       position.X = platform.Left - activeAnimation.frameWidth / 2;
+                       velocity.X = 0;
+                       mainHitbox.X = (int)(position.X - activeAnimation.frameWidth / 2);
+                       mainHitbox.Y = (int)(position.Y - activeAnimation.frameHeight / 2);
+                   }
+
+
+                   if (Collision.RectangleCollisionRight(mainHitbox, platform, velocity))
+                   {
+                       position.X = platform.Right + activeAnimation.frameWidth / 2;
+                       velocity.X = 0;
+                       mainHitbox.X = (int)(position.X - activeAnimation.frameWidth / 2);
+                       mainHitbox.Y = (int)(position.Y - activeAnimation.frameHeight / 2);
+
+                   }
+                   if (Collision.RectangleCollisionTop(mainHitbox, platform, velocity))
+                   {
+                       position.Y = (platform.Top - activeAnimation.frameHeight / 2);
+                       velocity.Y = 0;
+                       mainHitbox.X = (int)(position.X - activeAnimation.frameWidth / 2);
+                       mainHitbox.Y = (int)(position.Y - activeAnimation.frameHeight / 2);
+                       if (currentState != State.Jumping || currentState != State.Falling)
+                       {
+                           currentMoveState = MoveState.Standing;
+                       }
+                   }
+
+                   if (Collision.RectangleCollisionBottom(mainHitbox, platform, velocity))
+                   {
+                       position.Y = (platform.Bottom + activeAnimation.frameHeight / 2);
+                       velocity.Y = 0;
+                       mainHitbox.X = (int)(position.X - activeAnimation.frameWidth / 2);
+                       mainHitbox.Y = (int)(position.Y - activeAnimation.frameHeight / 2);
+
+                   }
+
+
+
+               }
+           }
         public void Update(GameTime gameTime)
         {
+            prePosition = position;
+            gamePadState = GamePad.GetState(playerNumber, GamePadDeadZone.None);
             GetInputLeft();
             GetInputRight();
             GetAngle();
@@ -261,6 +328,7 @@ namespace ThreeThingGame131115
                 playerRunning.active = false;
                 playerJump.active = false;
                 playerCrouch.active = false;
+                activeAnimation = playerBody;
                 headPosition = new Vector2(position.X, position.Y - (playerBody.frameHeight + playerHead.frameHeight) / 2);
                 armPosition = new Vector2(position.X, position.Y - (playerBody.frameHeight) / 2);
 
@@ -272,6 +340,7 @@ namespace ThreeThingGame131115
                 playerRunning.active = false;
                 playerJump.active = false;
                 playerCrouch.active = false;
+                activeAnimation = playerWalking;
                 headPosition = new Vector2(position.X, position.Y - (playerBody.frameHeight + playerHead.frameHeight) / 2);
                 armPosition = new Vector2(position.X, position.Y - (playerBody.frameHeight) / 2);
 
@@ -283,6 +352,7 @@ namespace ThreeThingGame131115
                 playerRunning.active = true;
                 playerJump.active = false;
                 playerCrouch.active = false;
+                activeAnimation = playerRunning;
                 if (!flipped)
                 {
                     headPosition = new Vector2(position.X + 25, position.Y + 9 - (playerBody.frameHeight + playerHead.frameHeight) / 2);
@@ -324,6 +394,7 @@ namespace ThreeThingGame131115
                     playerRunning.active = false;
                     playerJump.active = false;
                     playerCrouch.active = true;
+                    activeAnimation = playerJump;
                     if (!flipped)
                     {
                         headPosition = new Vector2(position.X-5, position.Y + jumpList[4 - playerCrouch.frameIndex] - (playerBody.frameHeight + playerHead.frameHeight) / 2);
@@ -343,11 +414,12 @@ namespace ThreeThingGame131115
                 playerBody.active = false;
                 playerRunning.active = false;
                 playerCrouch.active = false;
-
+                activeAnimation = playerJump;
                 headPosition = new Vector2(position.X, position.Y+jumpList[playerJump.frameIndex] - (playerBody.frameHeight + playerHead.frameHeight) / 2);
                 armPosition = new Vector2(position.X, position.Y + jumpList[playerJump.frameIndex] - (playerBody.frameHeight) / 2);
                 
             }
+            
             playerWalking.position = position;
             playerCrouch.position = position;
             playerJump.position = position;
@@ -355,6 +427,9 @@ namespace ThreeThingGame131115
             playerBody.position = position;
             playerHead.position = headPosition;
             playerArm.position = armPosition;
+
+            mainHitbox = new Rectangle((int)position.X - activeAnimation.frameWidth / 2, (int)position.Y - activeAnimation.frameHeight / 2, activeAnimation.frameWidth, activeAnimation.frameHeight);
+            PlatformCollision();
             playerJump.Update(gameTime);
             playerBody.Update(gameTime);
             playerHead.Update(gameTime);
@@ -363,7 +438,7 @@ namespace ThreeThingGame131115
             playerArm.Update(gameTime);
             playerCrouch.Update(gameTime);
             playerRunning.Update(gameTime);
-            
+            activeAnimation.Update(gameTime);
             if(flipped)
             {
                 playerArm.origin = new Vector2(playerArm.frameWidth , 0);
@@ -373,7 +448,36 @@ namespace ThreeThingGame131115
             {
                 playerArm.origin = new Vector2(0,0);
             }
+         
+            if (flipped)
+            {
+
+                weaponPosition = armPosition;
+            }
+            else
+            {
+                weaponPosition = armPosition ;
+            }
+            if (activeWeapon != null)
+            {
+                activeWeapon.position = weaponPosition;
+                activeWeapon.gunAngle = armAngle;
+
+            }
+            if (activeWeapon != null)
+            {
+                activeWeapon.Update(gameTime);
+            }
+            
+            
+            playerTransformation =
+                       Matrix.CreateTranslation(new Vector3(-activeAnimation.origin, 0.0f)) *
+                       Matrix.CreateScale(activeAnimation.scale) *
+                       Matrix.CreateTranslation(new Vector3(activeAnimation.position, 0.0f));
+            Matrix.CreateTranslation(new Vector3(activeAnimation.position, 0.0f));
+
         }
+        public Matrix playerTransformation;
         public void Draw(SpriteBatch sb)
         {
             playerWalking.Draw(sb);
@@ -383,6 +487,10 @@ namespace ThreeThingGame131115
            playerHead.Draw(sb);
            playerBody.Draw(sb);
            playerArm.Draw(sb);
+           if (activeWeapon != null)
+           {
+               activeWeapon.Draw(sb);
+           }
         }
 
     }

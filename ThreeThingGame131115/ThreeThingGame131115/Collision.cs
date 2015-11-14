@@ -154,16 +154,16 @@ namespace ThreeThingGame131115
         }
 
 
-        public bool IsAboveAC(Rectangle collsionHitBox, Vector2 playervector)
+        public static bool IsAboveAC(Rectangle collsionHitBox, Vector2 playervector)
         {
             return IsOnUpperSideOfLine(GetBottomRightCorner(collsionHitBox), GetTopLeftCorner(collsionHitBox), playervector);
         }
-        public bool IsAboveDB(Rectangle collsionHitBox, Vector2 playervector)
+        public static bool IsAboveDB(Rectangle collsionHitBox, Vector2 playervector)
         {
             return IsOnUpperSideOfLine(GetTopRightCorner(collsionHitBox), GetBottomLeftCorner(collsionHitBox), playervector);
         }
 
-        public bool RectangleCollisionTop(Rectangle playerHitBox, Rectangle collsionHitBox, Vector2 velocity)
+        public static bool RectangleCollisionTop(Rectangle playerHitBox, Rectangle collsionHitBox, Vector2 velocity)
         {
 
 
@@ -177,7 +177,7 @@ namespace ThreeThingGame131115
             return false;
         }
 
-        public bool RectangleCollisionBottom(Rectangle playerHitBox, Rectangle collsionHitBox, Vector2 velocity)
+        public static bool RectangleCollisionBottom(Rectangle playerHitBox, Rectangle collsionHitBox, Vector2 velocity)
         {
 
             if (playerHitBox.Left < collsionHitBox.Right && playerHitBox.Right > collsionHitBox.Left &&
@@ -189,7 +189,7 @@ namespace ThreeThingGame131115
             }
             return false;
         }
-        public bool RectangleCollisionLeft(Rectangle playerHitBox, Rectangle collsionHitBox, Vector2 velocity)
+        public static bool RectangleCollisionLeft(Rectangle playerHitBox, Rectangle collsionHitBox, Vector2 velocity)
         {
 
 
@@ -201,7 +201,7 @@ namespace ThreeThingGame131115
             }
             return false;
         }
-        public bool RectangleCollisionRight(Rectangle playerHitBox, Rectangle collsionHitBox, Vector2 velocity)
+        public static bool RectangleCollisionRight(Rectangle playerHitBox, Rectangle collsionHitBox, Vector2 velocity)
         {
             if (playerHitBox.Left + velocity.X < collsionHitBox.Right && playerHitBox.Right + velocity.X > collsionHitBox.Right &&
                 IsAboveAC(collsionHitBox, GetTopLeftCorner(playerHitBox)) &&
@@ -211,29 +211,29 @@ namespace ThreeThingGame131115
             }
             return false;
         }
-        public Vector2 GetCenter(Rectangle rect)
+        public static Vector2 GetCenter(Rectangle rect)
         {
             return new Vector2(rect.Center.X, rect.Center.Y);
         }
 
 
-        public Vector2 GetTopLeftCorner(Rectangle rect)
+        public static Vector2 GetTopLeftCorner(Rectangle rect)
         {
             return new Vector2(rect.X, rect.Y);
         }
-        public Vector2 GetTopRightCorner(Rectangle rect)
+        public static Vector2 GetTopRightCorner(Rectangle rect)
         {
             return new Vector2(rect.X + rect.Width, rect.Y);
         }
-        public Vector2 GetBottomRightCorner(Rectangle rect)
+        public static Vector2 GetBottomRightCorner(Rectangle rect)
         {
             return new Vector2(rect.X + rect.Width, rect.Y + rect.Height);
         }
-        public Vector2 GetBottomLeftCorner(Rectangle rect)
+        public static Vector2 GetBottomLeftCorner(Rectangle rect)
         {
             return new Vector2(rect.X, rect.Y + rect.Height);
         }
-        public bool IsOnUpperSideOfLine(Vector2 corner1, Vector2 oppositeCorner, Vector2 playerHitBoxCenter)
+        public static bool IsOnUpperSideOfLine(Vector2 corner1, Vector2 oppositeCorner, Vector2 playerHitBoxCenter)
         {
             return ((oppositeCorner.X - corner1.X) * (playerHitBoxCenter.Y - corner1.Y) - (oppositeCorner.Y - corner1.Y) * (playerHitBoxCenter.X - corner1.X)) > 0;
         }

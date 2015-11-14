@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Storage;
 
 namespace ThreeThingGame131115
 {
-    class Animation
+    public class Animation
     {
         public bool reversed =false;
         public float scale = 1f;
@@ -38,6 +38,16 @@ namespace ThreeThingGame131115
         {
 
             spriteSheet = theContentManager.Load<Texture2D>(textureName);
+
+            frameHeight = spriteSheet.Height;
+            frameWidth = spriteSheet.Width / totalFrames;
+            collisionData();
+
+        }
+        public void LoadTexture(Texture2D tex)
+        {
+
+            spriteSheet = tex;
 
             frameHeight = spriteSheet.Height;
             frameWidth = spriteSheet.Width / totalFrames;
