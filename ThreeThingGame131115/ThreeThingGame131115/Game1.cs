@@ -20,6 +20,8 @@ namespace ThreeThingGame131115
        public static List<Projectile> projectiles;
        public static List<Player> players;
         bool gameActive;
+         static List<Animation> hats;
+         static List<Vector2> hatPos;
         
       public static Animation playerHead
         , playerBody
@@ -33,7 +35,8 @@ namespace ThreeThingGame131115
         ,platformAnimation
         ,pickupAnimation
         ,backGroundAnimation
-        ,scoreAnimation;
+        ,scoreAnimation,
+        playButtonAnimation, exitButtonAnimation;
       public static Texture2D
             playerHeadTex
         , playerBodyTex
@@ -48,9 +51,22 @@ namespace ThreeThingGame131115
         ,pickupTex
         , backGroundTex
         ,scoreTex
-        , healthTexture;
-      
+        , healthTexture,
+        playButtonTex
+        ,exitButtonTex
+        ,winningTex
+        ,playerOneWin
+        ,playerTwoWin,
+        playerThreeWin,
+        playerFourWin;
 
+      public enum GameState
+      {
+          Menu,
+          Select,
+          Playing,
+          GameOver
+      }
         public static List<Pickup> pickups;
         SpriteFont spriteFont;       
         public Game1()
@@ -74,16 +90,579 @@ namespace ThreeThingGame131115
         /// and initialize them as well.
         /// </summary>
         /// 
+        Animation selectIcon;
+        List<Animation> selectIconsBody;
+        List<Animation> selectIconsHead;
+        List<Animation> selectHats;
+        public void InitializeSelectScreen()
+        {
+            readyPlayers = 0;
+            readyPlayerChecker = new List<bool>();
+            readyPlayerChecker.Add(false);
+            readyPlayerChecker.Add(false);
+            readyPlayerChecker.Add(false);
+
+            readyPlayerChecker.Add(false);
+            selectHats = new List<Animation>();
+            selectIconsBody = new List<Animation>();
+            selectIconsHead = new List<Animation>();
+            selectIcon = new Animation();
+            selectIcon.LoadTexture(playerBodyTex);
+            selectIcon.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth / 5, graphics.PreferredBackBufferHeight / 2), 0,Color.White);
+            selectIconsBody.Add(selectIcon);
+            selectIcon = new Animation();
+            selectIcon.LoadTexture(playerBodyTex);
+            selectIcon.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth*2 / 5, graphics.PreferredBackBufferHeight / 2), 0, Color.White);
+            selectIconsBody.Add(selectIcon);
+            selectIcon = new Animation();
+            selectIcon.LoadTexture(playerBodyTex);
+            selectIcon.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth *3/ 5, graphics.PreferredBackBufferHeight / 2), 0, Color.White);
+            selectIconsBody.Add(selectIcon);
+            selectIcon = new Animation();
+            selectIcon.LoadTexture(playerBodyTex);
+            selectIcon.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth*4 / 5, graphics.PreferredBackBufferHeight / 2), 0, Color.White);
+            selectIconsBody.Add(selectIcon);
+
+            selectIcon = new Animation();
+            selectIcon.LoadTexture(playerHeadTex);
+            selectIcon.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth / 5, graphics.PreferredBackBufferHeight / 2 -playerHeadTex.Height / 2- playerBodyTex.Height / 2), 0, Color.White);
+            selectIconsHead.Add(selectIcon);
+            selectIcon = new Animation();
+            selectIcon.LoadTexture(playerHeadTex);
+            selectIcon.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth * 2 / 5, graphics.PreferredBackBufferHeight / 2 - playerHeadTex.Height / 2 - playerBodyTex.Height / 2), 0, Color.White);
+            selectIconsHead.Add(selectIcon);
+            selectIcon = new Animation();
+            selectIcon.LoadTexture(playerHeadTex);
+            selectIcon.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth * 3 / 5, graphics.PreferredBackBufferHeight / 2 - playerHeadTex.Height / 2 - playerBodyTex.Height / 2), 0, Color.White);
+            selectIconsHead.Add(selectIcon);
+            selectIcon = new Animation();
+            selectIcon.LoadTexture(playerHeadTex);
+            selectIcon.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth * 4 / 5, graphics.PreferredBackBufferHeight / 2 - playerHeadTex.Height / 2 - playerBodyTex.Height / 2), 0, Color.White);
+            selectIconsHead.Add(selectIcon);
+
+            selectIcon = new Animation();
+            selectIcon.LoadTexture(playerHeadTex);
+            selectIcon.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth / 5, graphics.PreferredBackBufferHeight / 2  - playerBodyTex.Height / 2), 0, Color.White);
+            selectHats.Add(selectIcon);
+            selectIcon = new Animation();
+            selectIcon.LoadTexture(playerHeadTex);
+            selectIcon.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth * 2 / 5, graphics.PreferredBackBufferHeight / 2  - playerBodyTex.Height / 2), 0, Color.White);
+            selectHats.Add(selectIcon);
+            selectIcon = new Animation();
+            selectIcon.LoadTexture(playerHeadTex);
+            selectIcon.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth * 3 / 5, graphics.PreferredBackBufferHeight / 2  - playerBodyTex.Height / 2), 0, Color.White);
+            selectHats.Add(selectIcon);
+            selectIcon = new Animation();
+            selectIcon.LoadTexture(playerHeadTex);
+            selectIcon.Initialize(1, 1, new Vector2(graphics.PreferredBackBufferWidth * 4 / 5, graphics.PreferredBackBufferHeight / 2 - - playerBodyTex.Height / 2 ), 0, Color.White);
+            selectHats.Add(selectIcon);
+
+        }
+        
+        public void HatSelect(GameTime gameTime, int num)
+        {
+            
+            if (0 <= playerHatNums[num ] && playerHatNums[num ] < hatTexs.Count)
+            {
+                menuTime = 1000;
+                elapsedTime += gameTime.ElapsedGameTime.Milliseconds;
+                if (elapsedTime > menuTime)
+                {
+                    int plyerindex = num;
+                    if ((int)(GamePad.GetState((PlayerIndex)(plyerindex)).ThumbSticks.Left.X) >= 1)
+                    {
+                    playerHatNums[num ] += 1;
+                    
+                    elapsedTime = 0;
+                    }
+                    if ((int)(GamePad.GetState((PlayerIndex)(plyerindex)).ThumbSticks.Left.X) <= -1)
+                    {
+                        playerHatNums[num] -= 1;
+
+                        elapsedTime = 0;
+                    }
+
+
+                }
+
+            }
+
+
+            if (0 > playerHatNums[num])
+            {
+                playerHatNums[num] = 0;
+                
+            }
+            if (playerHatNums[num] >= 13)
+            {
+                playerHatNums[num ] = 12;
+            }
+            selectIcon = new Animation();
+            selectIcon = hatsHats[num][playerHatNums[num]];
+            Vector2 headPos = new Vector2(graphics.PreferredBackBufferWidth * (num + 1) / 5   ,
+                graphics.PreferredBackBufferHeight / 2 - playerBodyTex.Height  - playerHeadTex.Height);
+            selectIcon.Initialize(1, 1, headPos  - new Vector2(playerHeadTex.Width / 2, playerHeadTex.Height / 2) * 2 + hatPos[playerHatNums[num]], 0, Color.White);
+           
+            selectHats[num] = selectIcon;
+            
+        }
+        int readyPlayers;
+        List<bool> readyPlayerChecker;
+        public void UpdateSelectScreen(GameTime gameTime)
+        {
+            foreach (Animation anmi in selectIconsHead)
+            {
+                anmi.Update(gameTime);
+            }
+            foreach (Animation anmi in selectIconsBody)
+            {
+                anmi.Update(gameTime);
+            }
+           
+            foreach (Animation anmi in selectHats)
+            {
+                anmi.Update(gameTime);
+                anmi.origin = new Vector2(0, 0);
+            }
+            for (int i = 0; i <4; i++)
+            {
+                if (!readyPlayerChecker[i])
+                {
+                    HatSelect(gameTime, i);
+                }
+                if (GamePad.GetState((PlayerIndex)i).Buttons.Start == ButtonState.Pressed && !readyPlayerChecker[i])
+                {
+                    readyPlayerChecker[i] = true;
+                    readyPlayers += 1;
+                }
+                if (GamePad.GetState((PlayerIndex)i).Buttons.B == ButtonState.Pressed && readyPlayerChecker[i])
+                {
+                    readyPlayerChecker[i] = false;
+                    readyPlayers -= 1;
+                }
+            }
+            if (readyPlayers == 4)
+            {
+                StartGame();
+                currentGameState = GameState.Playing;
+            }
+
+
+        }
+        public void DrawIcons(SpriteBatch spriteBatch)
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                if (!readyPlayerChecker[i])
+                {
+                    selectIconsBody[i].Draw(spriteBatch);
+                    
+                    selectIconsHead[i].Draw(spriteBatch);
+                    selectHats[i].origin = new Vector2(0, 0);
+                    selectHats[i].Draw(spriteBatch);
+                }
+                else
+                {
+                    selectIconsBody[i].Draw(spriteBatch);
+                    
+                    selectIconsHead[i].Draw(spriteBatch);
+                    selectHats[i].origin = new Vector2(0, 0);
+                    selectHats[i].Draw(spriteBatch);
+
+                }
+               
+            }
+        }
         protected override void Initialize()
         {
            
             // TODO: Add your initialization logic here
-
+            playerHatNums.Add(0);
+            playerHatNums.Add(0);
+            playerHatNums.Add(0);
+            playerHatNums.Add(0);
             base.Initialize();
-            StartGame();
+            if (currentGameState == GameState.Menu)
+            {
+                HatLoad();
+                InitializeMainMenu();
+            }
+            if (currentGameState == GameState.Playing)
+            {
+                StartGame();
+            }
+        }
+      public static List<Texture2D> hatTexs;
+      public static Animation hat;
+      
+     public static List<int> playerHatNums = new List<int>();
+      List<List<Animation>> hatsHats;
+        public void HatLoad()
+        {
+         hatsHats = new List<List<Animation>>();
+                 hatTexs = new List<Texture2D>() ;
+                 hats = new List<Animation>();
+                 hatPos = new List<Vector2>();
+                 Texture2D hatTexture = LoadContent(this.Content, "ricehat");
+                 hatTexs.Add(hatTexture);
+
+
+
+                 hatPos.Add(new Vector2(8, 10));
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(14, 5));
+                 hatTexture = LoadContent(this.Content, "boater");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(15, 8));
+                 hatTexture = LoadContent(this.Content, "chefhat");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(14, 1));
+                 hatTexture = LoadContent(this.Content, "christmashat");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(14, 5));
+                 hatTexture = LoadContent(this.Content, "dmed");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(14, 6));
+                 hatTexture = LoadContent(this.Content, "elfhat");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(18, 3));
+                 hatTexture = LoadContent(this.Content, "fez");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(19, 3));
+                 hatTexture = LoadContent(this.Content, "vikinghat");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(13, 4));
+
+                 hatTexture = LoadContent(this.Content, "pilgrimmhat");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(18, 4));
+
+                 hatTexture = LoadContent(this.Content, "piratehat");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(11, 7));
+
+                 hatTexture = LoadContent(this.Content, "russianhat");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(13, 11));
+                 hatTexture = LoadContent(this.Content, "stetson");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(12, 0));
+                 hatTexture = LoadContent(this.Content, "wizardhat");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(17, 2));
+                 hatsHats.Add(hats);
+
+                 hatTexs = new List<Texture2D>();
+                 hats = new List<Animation>();
+                 hatPos = new List<Vector2>();
+                 hatTexture = LoadContent(this.Content, "ricehat");
+                 hatTexs.Add(hatTexture);
+
+                 hatPos.Add(new Vector2(8, 10));
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(14, 5));
+                 hatTexture = LoadContent(this.Content, "boater");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(15, 8));
+                 hatTexture = LoadContent(this.Content, "chefhat");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(14, 1));
+                 hatTexture = LoadContent(this.Content, "christmashat");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(14, 5));
+                 hatTexture = LoadContent(this.Content, "dmed");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(14, 6));
+                 hatTexture = LoadContent(this.Content, "elfhat");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(18, 3));
+                 hatTexture = LoadContent(this.Content, "fez");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(19, 3));
+                 hatTexture = LoadContent(this.Content, "vikinghat");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(13, 4));
+
+                 hatTexture = LoadContent(this.Content, "pilgrimmhat");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(18, 4));
+
+                 hatTexture = LoadContent(this.Content, "piratehat");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(11, 7));
+
+                 hatTexture = LoadContent(this.Content, "russianhat");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(13, 11));
+                 hatTexture = LoadContent(this.Content, "stetson");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(12, 0));
+                 hatTexture = LoadContent(this.Content, "wizardhat");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(17, 2));
+                 hatsHats.Add(hats);
+
+                 hatTexs.Add(hatTexture);
+                 hatTexs = new List<Texture2D>();
+                 hats = new List<Animation>();
+                 hatPos = new List<Vector2>();
+                  hatTexture = LoadContent(this.Content, "ricehat");
+                 hatTexs.Add(hatTexture);
+
+                 hatPos.Add(new Vector2(8, 10));
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(14, 5));
+                 hatTexture = LoadContent(this.Content, "boater");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(15, 8));
+                 hatTexture = LoadContent(this.Content, "chefhat");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(14, 1));
+                 hatTexture = LoadContent(this.Content, "christmashat");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(14, 5));
+                 hatTexture = LoadContent(this.Content, "dmed");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(14, 6));
+                 hatTexture = LoadContent(this.Content, "elfhat");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(18, 3));
+                 hatTexture = LoadContent(this.Content, "fez");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(19, 3));
+                 hatTexture = LoadContent(this.Content, "vikinghat");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(13, 4));
+
+                 hatTexture = LoadContent(this.Content, "pilgrimmhat");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(18, 4));
+
+                 hatTexture = LoadContent(this.Content, "piratehat");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(11, 7));
+
+                 hatTexture = LoadContent(this.Content, "russianhat");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(13, 11));
+                 hatTexture = LoadContent(this.Content, "stetson");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(12, 0));
+                 hatTexture = LoadContent(this.Content, "wizardhat");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(17, 2));
+
+                 hatsHats.Add(hats);
+                 hatTexs.Add(hatTexture);
+                 hatTexs = new List<Texture2D>();
+                 hats = new List<Animation>();
+                 hatPos = new List<Vector2>();
+                 hatTexture = LoadContent(this.Content, "ricehat");
+                 hatTexs.Add(hatTexture);
+                 hatPos.Add(new Vector2(8, 10));
+
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(14, 5));
+                 hatTexture = LoadContent(this.Content, "boater");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(15, 8));
+                 hatTexture = LoadContent(this.Content, "chefhat");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(14, 1));
+                 hatTexture = LoadContent(this.Content, "christmashat");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(14, 5));
+                 hatTexture = LoadContent(this.Content, "dmed");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(14, 6));
+                 hatTexture = LoadContent(this.Content, "elfhat");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(18, 3));
+                 hatTexture = LoadContent(this.Content, "fez");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(19, 3));
+                 hatTexture = LoadContent(this.Content, "vikinghat");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(13, 4));
+
+                 hatTexture = LoadContent(this.Content, "pilgrimmhat");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(18, 4));
+
+                 hatTexture = LoadContent(this.Content, "piratehat");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(11, 7));
+
+                 hatTexture = LoadContent(this.Content, "russianhat");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(13, 11));
+                 hatTexture = LoadContent(this.Content, "stetson");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(12, 0));
+                 hatTexture = LoadContent(this.Content, "wizardhat");
+                 hatTexs.Add(hatTexture);
+                 hat = new Animation();
+                 hat.LoadTexture(hatTexture);
+                 hats.Add(hat);
+                 hatPos.Add(new Vector2(17, 2));
+
+                 hatsHats.Add(hats);
+
+
         }
         public void StartGame()
         {
+            HatLoad();
+            currentGameLength = TimeSpan.FromSeconds(0);
             projectiles = new List<Projectile>();
             playerBody = new Animation();
             playerHead = new Animation();
@@ -146,13 +725,14 @@ namespace ThreeThingGame131115
             playerJump.LoadTexture(playerJumpTex);
             playerCrouch.LoadTexture(playerCrouchTex);
             playerWalking.LoadTexture(playerWalkingTex);
+
             weaponAnimation.LoadTexture(weaponTex);
             Weapon weapon = new Weapon();
             weapon.Initialize(weaponAnimation, bulletTex, new Vector2(0, 0), new Vector2(25, 0), new Vector2(4, 14), 0, true, 1f, TimeSpan.FromSeconds(0.05), 10, (PlayerIndex)playerNum);
             players[playerNum] = new Player();
             players[playerNum].Initialize(healthTexture, playerBody, playerRunning, playerWalking, playerCrouch, playerJump, playerHead, playerArm,
                     new Vector2(200 * playerNum, 200), graphics.GraphicsDevice.Viewport.Width, graphics.GraphicsDevice.Viewport.Height,
-                    new Vector2(0, 40f), 200, new Vector2(0, 15), (PlayerIndex)playerNum, score);
+                    new Vector2(0, 40f), 200, new Vector2(0, 15), (PlayerIndex)playerNum, score, hatTexs[playerHatNums[playerNum]], hatPos[playerHatNums[playerNum]]);
             players[playerNum].activeWeapon = weapon;
         }
             
@@ -178,7 +758,17 @@ namespace ThreeThingGame131115
             backGroundTex = LoadContent(this.Content, "BackGround1");
             scoreTex = LoadContent(this.Content, "Scoreboard");
             healthTexture = LoadContent(this.Content, "healthbar");
-            spriteFont = Content.Load<SpriteFont>("Font");        
+            spriteFont = Content.Load<SpriteFont>("Font");
+            playButtonTex = LoadContent(this.Content, "playButton");
+
+            exitButtonTex = LoadContent(this.Content, "exitButton");
+            playerOneWin = LoadContent(this.Content, "playerOneWin");
+
+            playerTwoWin = LoadContent(this.Content, "playerTwoWin");
+
+            playerThreeWin = LoadContent(this.Content, "playerThreeWin");
+
+            playerFourWin = LoadContent(this.Content, "playerFourWin");
 
         }
         
@@ -355,7 +945,7 @@ namespace ThreeThingGame131115
                 Player player = new Player();
                 player.Initialize(healthTexture,playerBody, playerRunning, playerWalking, playerCrouch, playerJump, playerHead, playerArm,
                     new Vector2(200*i, 200), graphics.GraphicsDevice.Viewport.Width, graphics.GraphicsDevice.Viewport.Height,
-                    new Vector2(0, 40f), 200, new Vector2(0, 15), (PlayerIndex)i,0);
+                    new Vector2(0, 40f), 200, new Vector2(0, 15), (PlayerIndex)i, 0, hatTexs[playerHatNums[i]], hatPos[playerHatNums[i]]);
                 player.activeWeapon = weapon;
                 players.Add(player);
             }
@@ -456,19 +1046,95 @@ namespace ThreeThingGame131115
        TimeSpan previousSpawnTime;
        TimeSpan spawnRate = TimeSpan.FromSeconds(1);
        TimeSpan gameLength = TimeSpan.FromSeconds(60);
-        public enum GameState
+      
+        List<Button> menuButtons;
+        GameState currentGameState = GameState.Menu;
+        public void InitializeMainMenu()
         {
-            Menu,
-            Select,
-            Playing
+            playButtonAnimation = new Animation();
+            playButtonAnimation.LoadTexture(playButtonTex);
+            exitButtonAnimation = new Animation();
+            exitButtonAnimation.LoadTexture(exitButtonTex);
+            menuButtons = new List<Button>();
+
+            
+            Button button = new Button();
+            button.Initialize(new Vector2((1920) / 2, 500 + 140 / 2), playButtonAnimation, "play", 1);
+            menuButtons.Add(button);
+
+            button = new Button();
+            button.Initialize(new Vector2((1920) / 2, 700 + 140 / 2), exitButtonAnimation, "exit", 2);
+            menuButtons.Add(button);
         }
-        GameState curentGameState = GameState.Playing;
+        public void UpdateMenu(GameTime gameTime)
+        {
+            MenuSelect(gameTime, PlayerIndex.One);
+            foreach (Button button in menuButtons)
+            {
+                button.Update(gameTime, currentMenuItem);
+                if (button.CheckForClick())
+                {
+
+                    if (button.buttonName == "play")
+                    {
+                        InitializeSelectScreen();
+                        currentGameState = GameState.Select;
+
+                    }
+                    if (button.buttonName == "exit")
+                    {
+                        Exit();
+                    }
+                }
+            }
+
+        }
+        int currentMenuItem = 1;
+        float elapsedTime;
+        float menuTime = 50; 
+        public void MenuSelect(GameTime gameTime, PlayerIndex num)
+        {
+            if (1 <= currentMenuItem && currentMenuItem <= menuButtons.Count)
+            {
+
+                elapsedTime += gameTime.ElapsedGameTime.Milliseconds;
+                if (elapsedTime > menuTime)
+                {
+                    currentMenuItem -= (int)(GamePad.GetState(num).ThumbSticks.Left.Y);
+                    elapsedTime = 0;
+                }
+
+            }
+
+
+            if (1 > currentMenuItem)
+            {
+                currentMenuItem = 1;
+            }
+            if (currentMenuItem > menuButtons.Count)
+            {
+                currentMenuItem = menuButtons.Count;
+            }
+        }
+        public void DrawMenu()
+        {
+            foreach (Button button in menuButtons)
+            {
+                button.Draw(spriteBatch);
+            }
+
+        }
         protected override void Update(GameTime gameTime)
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
-            if (curentGameState == GameState.Playing)
+            if(currentGameState == GameState.Menu)
             {
+                UpdateMenu(gameTime);
+            }
+            if (currentGameState == GameState.Playing)
+            {
+                currentGameLength += TimeSpan.FromSeconds(gameTime.ElapsedGameTime.TotalSeconds);
                 for (int i = 0; i < players.Count; i++)
                 {
                     players[i].Update(gameTime);
@@ -491,30 +1157,109 @@ namespace ThreeThingGame131115
                 scoreAnimation.Update(gameTime);
                 BulletPlayerCollision();
                 PickupPlayerCollision();
+                GameOverCheck();
                 // TODO: Add your update logic here
             }
+            if(currentGameState ==  GameState.GameOver)
+            {
+                UpdateGameOverScreen();
+            }
+            if (currentGameState == GameState.Select)
+            {
+                UpdateSelectScreen( gameTime);
+        
+
+            }
+
             base.Update(gameTime);
         }
+        TimeSpan currentGameLength;
+        int winningPlayer;
+        int lastScore;
+        public void UpdateGameOverScreen()
+        {
+            if (GamePad.GetState(PlayerIndex.One).Buttons.B == ButtonState.Pressed)
+            {
+                currentGameState = GameState.Menu;
+                InitializeMainMenu();
+            }
 
-        /// <summary>
-        /// This is called when the game should draw itself.
-        /// </summary>
-        /// <param name="gameTime">Provides a snapshot of timing values.</param>
+
+        }
+        public void DrawGameOver()
+        {
+
+            spriteBatch.Draw(winningTex, new Vector2((1920 - winningTex.Width) / 2, (1080 - winningTex.Height) / 2), Color.Green);
+
+        }
+        public void GameOverCheck()
+        {
+            lastScore= 0;
+            if (gameLength <=currentGameLength)
+            {
+                foreach (Player player in players)
+                {
+                    if(player.score> lastScore)
+                    {
+                        lastScore =player.score;
+                        winningPlayer = (int)player.playerNumber;
+                        switch (winningPlayer)
+                        {
+                            case (int)PlayerIndex.One:
+                                winningTex = playerOneWin;
+                                break;
+                            case (int)PlayerIndex.Two:
+                                winningTex = playerTwoWin;
+                                break;
+                            case (int)PlayerIndex.Three:
+                                winningTex = playerThreeWin;
+                                break;
+                            case (int)PlayerIndex.Four:
+                                winningTex = playerFourWin;
+                                break;
+                        }
+                }
+                      
+                }
+                currentGameState = GameState.GameOver;
+
+            }
+        }
+      
+        string output;
+        Vector2 FontOrigin;
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
             spriteBatch.Begin();
-            if (curentGameState == GameState.Playing)
+            if(currentGameState == GameState.GameOver)
+            {
+                DrawGameOver();
+            }
+            if(currentGameState == GameState.Menu)
+            {
+                DrawMenu();
+            }
+            if (currentGameState == GameState.Select)
+            {
+                DrawIcons(spriteBatch);
+            }
+            if (currentGameState == GameState.Playing)
             {
                 backGroundAnimation.Draw(spriteBatch);
                 scoreAnimation.Draw(spriteBatch);
                 for (int i = 0; i < players.Count; i++)
                 {
-                    string output = players[i].score.ToString();
-                    Vector2 FontOrigin = spriteFont.MeasureString(output) / 2;
-                    spriteBatch.DrawString(spriteFont, output, new Vector2(100 * (i + 3), 30), Color.Black,
+                    output = "Player " + players[i].playerNumber.ToString() +" " +  players[i].score.ToString();
+                     FontOrigin = spriteFont.MeasureString(output) / 2;
+                    spriteBatch.DrawString(spriteFont, output, new Vector2(200 * (i + 3), 30), Color.Black,
                                   0, FontOrigin, 1.0f, SpriteEffects.None, 0.5f);
                 }
+
+                  output = currentGameLength.ToString();
+                 FontOrigin = spriteFont.MeasureString(output) / 2;
+                    spriteBatch.DrawString(spriteFont, output, new Vector2(1500, 30), Color.Black,
+                                  0, FontOrigin, 1.0f, SpriteEffects.None, 0.5f);
                 foreach (Projectile projectile in projectiles)
                 {
                     projectile.Draw(spriteBatch);

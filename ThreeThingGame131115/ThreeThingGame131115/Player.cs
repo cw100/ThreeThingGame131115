@@ -10,9 +10,12 @@ namespace ThreeThingGame131115
 {
     public class Player
     {
+        public bool ready = false;
         public int score;
         Vector2 weaponPosition;
         public float health;
+        public Animation hatAnimation;
+        public Vector2 hatPos;
         public Animation activeAnimation;
         Animation playerRunning;
         Animation playerBody;
@@ -32,7 +35,7 @@ namespace ThreeThingGame131115
         Vector2 armAngleVector;
         float armAngle;
         float windowWidth, windowHeight;
-        PlayerIndex playerNumber;
+        public PlayerIndex playerNumber;
         bool flipped;
         float playerSpeed;
         GamePadState gamePadState;
@@ -57,9 +60,11 @@ namespace ThreeThingGame131115
         State currentState = State.OnGround;
         MoveState currentMoveState = MoveState.Standing;
         public void Initialize(Texture2D healthtexture,Animation playerBody, Animation playerRunning, Animation playerWalking, Animation playerCrouch, Animation playerJump, Animation playerHead, Animation playerArm, Vector2 position, float windowWidth, float windowHeight, Vector2 gravity,
-          float playerSpeed, Vector2 jumpSpeed, PlayerIndex playerNumber, int score )
+          float playerSpeed, Vector2 jumpSpeed, PlayerIndex playerNumber, int score,Texture2D hatTex, Vector2 hatPos )
         {
+            this.hatAnimation =new Animation();
             this.healthtexture = healthtexture;
+            this.hatPos = hatPos;
             State currentState = State.OnGround;
             MoveState currentMoveState = MoveState.Standing;
             active = true;
@@ -101,6 +106,8 @@ namespace ThreeThingGame131115
             jumpList.Add(9);
             jumpList.Add(0);
             activeAnimation = playerBody;
+            hatAnimation.LoadTexture(hatTex);
+            hatAnimation.Initialize(1, 1, new Vector2(0, 0), 0, Color.White);
           
         }
         public void GetInputRight()
@@ -476,6 +483,7 @@ namespace ThreeThingGame131115
                 playerCrouch.Update(gameTime);
                 playerRunning.Update(gameTime);
                 activeAnimation.Update(gameTime);
+                
                 if (flipped)
                 {
                     playerArm.origin = new Vector2(playerArm.frameWidth, 0);
@@ -517,6 +525,18 @@ namespace ThreeThingGame131115
                            Matrix.CreateScale(playerHead.scale) *
                            Matrix.CreateTranslation(new Vector3(playerHead.position, 0.0f));
                 Matrix.CreateTranslation(new Vector3(playerHead.position, 0.0f));
+
+                 hatAnimation.position = headPosition - new Vector2((playerHead.frameWidth / 2), playerHead.frameHeight / 2) * 2 + hatPos;
+
+                
+               
+                
+                hatAnimation.Update(gameTime);
+               
+                    hatAnimation.origin = new Vector2(0, 0);
+                    
+               
+              
                 if(health <=0)
                 {
                     PlayerDeath();
@@ -545,6 +565,7 @@ namespace ThreeThingGame131115
         {
             if (active)
             {
+               
                 float healthPercentage = health / 100; ;
                 float visibleWidth = (float)healthtexture.Width * healthPercentage;
 
@@ -565,6 +586,7 @@ namespace ThreeThingGame131115
                 {
                     activeWeapon.Draw(sb);
                 }
+                hatAnimation.Draw(sb);
             }
         }
 
